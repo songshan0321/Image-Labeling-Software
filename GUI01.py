@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Feb 24 22:57:18 2018
+
+@author: Windows 10
+"""
+
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
@@ -9,10 +16,25 @@ from Tkinter import *
 import Tkinter as tk
 import ttk
 from PIL import ImageTk, Image
+import sqlite3 #Import the SQLite3 module
 
 
 class Application:
     def __init__(self, master):
+        
+        db = sqlite3.connect('Labelling.db')
+        cur = db.cursor()
+        
+        # Load data from activity table and return a list of label
+        cur.execute("SELECT * FROM labels")
+        rows = cur.fetchall()
+        
+        lbl_ls = []
+        for row in rows: 
+            lbl = row[1]
+            lbl_ls.append(lbl)
+        #print "lbl_ls =",
+        #print lbl_ls
         
         #create regions for the main frame
         leftFrame = Frame(master, width=1000)
@@ -32,12 +54,14 @@ class Application:
         TagLabels = ttk.Notebook(rightFrame)
         TagLabels.grid(sticky=N)
         
+        
+        
         #Toolbar, #insert your functions in command to for events
         self.openFile = Button(ToolBar, text="Open File", height=2, width=7, command=self.doNothing) 
         self.openFile.grid(sticky=W, row=1, rowspan=2, column=0, columnspan=3)
         
         
-        self.saveImgs = Button(ToolBar, text="Save", height=2, width=7, command=self.doNothing)
+        self.saveImgs = Button(ToolBar, text="Save", height=2, width=7, command=self.update)
         self.saveImgs.grid(sticky=E, row=1, rowspan=2, column=7, columnspan=3)
         
         #ImgHolders
@@ -47,6 +71,8 @@ class Application:
         #showPhoto.grid()
         imgHolder = Label(ImageHolder, text="View images here")
         imgHolder.grid(padx=100, pady=100)
+        pic_field = Entry(ImageHolder, text="Image Name")
+        pic_field.pack()
         
         #PrevNext 
         prev = Button(PrevNext, text="<", width=4)
@@ -67,57 +93,56 @@ class Application:
         TagLabels.add(thingTab, text="Things")
         TagLabels.add(addTab, text="+")
         
+        btn_ls=[]
         #General Tab
-        person = Checkbutton(generalTab, text="Person")
-        person.grid(sticky=W)
-        useless = Checkbutton(generalTab, text="Not useful")
-        useless.grid(sticky=W)
+        
+        # Generate multiple buttons from lbl_ls
+        for label in lbl_ls[0:2]:
+            num = IntVar()
+            c= Checkbutton(generalTab, text=label, variable=num)
+            c.grid(sticky=W)
+            btn_ls.append((label,num))
         
         #Locations tab
-        home = Checkbutton(envTab, text="House")
-        park = Checkbutton(envTab, text="Park")
-        market = Checkbutton(envTab, text="Supermarket/Wet market")
-        foodstore = Checkbutton(envTab, text="Food center/Coffeeshop")
-        hospital = Checkbutton(envTab, text="Hospital")
-        common = Checkbutton(envTab, text="Playground/Void Deck")
-        religion = Checkbutton(envTab, text="Religious Venue")
-        road = Checkbutton(envTab, text="On Road/Street")
-        busstop = Checkbutton(envTab, text="Bus Stop")
-        mrtstation = Checkbutton(envTab, text="MRT station")
         
-        home.grid(sticky=W)
-        park.grid(sticky=W)
-        market.grid(sticky=W)
-        foodstore.grid(sticky=W)
-        hospital.grid(sticky=W)
-        common.grid(sticky=W)
-        religion.grid(sticky=W)
-        road.grid(sticky=W)
-        busstop.grid(sticky=W)
-        mrtstation.grid(sticky=W)
+        for label in lbl_ls[2:12]:
+            num = IntVar()
+            c= Checkbutton(envTab, text=label, variable=num)
+            c.grid(sticky=W)
+            btn_ls.append((label,num))
         
-        #activity
+        #activity tab
         
-        walk = Checkbutton(activityTab, text="Walking")
-        cycle = Checkbutton(activityTab, text="Cycling")
-        sit = Checkbutton(activityTab, text="Sitting")
-        talk = Checkbutton(activityTab, text="Chatting")
-        eat = Checkbutton(activityTab, text="Eating")
-        shop = Checkbutton(activityTab, text="Shopping")
-        rest = Checkbutton(activityTab, text="Resting")
-        others = Checkbutton(activityTab, text="Others")
-        
-        walk.grid(sticky=W)
-        cycle.grid(sticky=W)
-        sit.grid(sticky=W)
-        talk.grid(sticky=W)
-        eat.grid(sticky=W)
-        shop.grid(sticky=W)
-        rest.grid(sticky=W)
-        others.grid(sticky=W)
+        for label in lbl_ls[12:20]:
+            num = IntVar()
+            c= Checkbutton(activityTab, text=label, variable=num)
+            c.grid(sticky=W)
+            btn_ls.append((label,num))
         
     def doNothing(self):
         print("Huat Ah!")
+        
+    def update(self):
+        name = pic_field.get()
+        
+        try:
+            print "Go into 'try'"
+            cur.execute("INSERT INTO result(image) VALUES (?)", (name,))
+            db.commit()
+        except:
+            cur.execute("UPDATE result SET date = NULL, person = 0, not_useful = 0, house = 0, park = 0, market = 0, food_center = 0, hospital = 0, playground = 0, religous = 0, road = 0, bus_stop = 0, mrt = 0, walk = 0, cycle = 0, sit = 0, chat = 0, eat = 0, shopping = 0, rest = 0, other_activity = 0 WHERE image = (?)", (name,))
+            db.commit()
+    
+                
+        # Take checkboxes input and insert into table one by one
+        for lbl in btn_ls:
+            label = lbl[0]
+            num = lbl[1]
+            if num.get() == 1:
+                cur.execute("UPDATE result SET " + label + " = (?) WHERE image = (?)", (1,name))
+                db.commit()
+                
+        print 'Inserted ' + name
         
         
 
