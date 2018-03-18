@@ -218,13 +218,13 @@ class MainApplication(Tk.Tk):
 			label = self.lbl_dict[data[0].cget("text")]
 			k = data[1] # k is a boolean
 			if k == 1:
-				db = sqlite3.connect('D:\Term 5\LKY Software\Application\lkydata.db')
+				db = sqlite3.connect('D:\GitHub\Labeling-Backend\Application\lkydata.db')
 				cur = db.cursor()
 				query_result = cur.execute("UPDATE attributes SET " + label + " = (?) WHERE file = (?)", (1,self.file_chosen_ls[n].cget("text"),))
 				db.commit()
 
 	def run_query(self,query,parameters=()):
-		with sqlite3.connect('D:\Term 5\LKY Software\Application\lkydata.db') as db:
+		with sqlite3.connect('D:\GitHub\Labeling-Backend\Application\lkydata.db') as db:
 			cur = db.cursor()
 			query_result = cur.execute(query,parameters)
 			db.commit()
