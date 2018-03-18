@@ -48,8 +48,8 @@ def import_GUI():
         c.pack()
         btn_ls.append((label,num))
         
-    #print "btn_ls =",
-    #print btn_ls
+    print "btn_ls =",
+    print btn_ls
     
     b = Button(master, text="Update", command=update)
     b.pack()
