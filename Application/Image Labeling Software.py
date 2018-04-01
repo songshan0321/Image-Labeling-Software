@@ -310,9 +310,9 @@ class MainApplication(Tk.Tk):
 
 		# update data to database
 		try: # if file not exist in database, add new row
-			self.run_query("INSERT INTO attributes1(file) VALUES (?)", (self.file_chosen_ls[0].cget("text"),))
+			self.run_query("INSERT INTO attributes(file) VALUES (?)", (self.file_chosen_ls[0].cget("text"),))
 		except: # if file exist in database, update it to all 0 first
-			self.run_query("UPDATE attributes1 SET date=NULL,person=0,home=0,playground=0,void_deck=0,park=0,public_space=0,supermarket=0,market=0,food_court=0,shop=0,mall=0,hospital=0,clinic=0,community_center=0,senior=0,religious=0,transaction=0,fitness=0,bus_stop=0,mrt=0,walkway=0,pedestrian_crossing=0,cycling_path=0,street_lights=0,traffic_lights=0,street_signs=0,trees=0,furniture=0,stairs=0,ramps=0,walk=0,cycle=0,bus=0,train=0,car=0,drive=0,sit=0,chat=0,eat=0,shop=0,run=0,exercise=0,not_useful=0 WHERE file = (?)", (self.file_chosen_ls[0].cget("text"),))
+			self.run_query("UPDATE attributes SET date=NULL,person=0,home=0,playground=0,void_deck=0,park=0,public_space=0,supermarket=0,market=0,food_court=0,shop=0,mall=0,hospital=0,clinic=0,community_center=0,senior=0,religious=0,transaction=0,fitness=0,bus_stop=0,mrt=0,walkway=0,pedestrian_crossing=0,cycling_path=0,street_lights=0,traffic_lights=0,street_signs=0,trees=0,furniture=0,stairs=0,ramps=0,walk=0,cycle=0,bus=0,train=0,car=0,drive=0,sit=0,chat=0,eat=0,shop=0,run=0,exercise=0,not_useful=0 WHERE file = (?)", (self.file_chosen_ls[0].cget("text"),))
 
 		self.insert_row_data(self.cb_data_ls,0)
 
@@ -320,9 +320,9 @@ class MainApplication(Tk.Tk):
 		if len(self.file_chosen_ls) >= 2:
 			for j in range(1,len(self.file_chosen_ls)):
 				try: # if file not exist in database, add new row
-					self.run_query("INSERT INTO attributes1(file) VALUES (?)", (self.file_chosen_ls[j].cget("text"),))
+					self.run_query("INSERT INTO attributes(file) VALUES (?)", (self.file_chosen_ls[j].cget("text"),))
 				except: # if file exist in database, update it to all 0 first
-					self.run_query("UPDATE attributes1 SET date=NULL,person=0,not_useful=0,home=0,park=0,supermarket=0,food_court=0,hospital=0,playground=0,place_of_worship=0,street=0,bus_stop=0,mrt_station=0,walking=0,cycling=0,sitting=0,chatting=0,eating=0,shopping=0,resting=0,others=0 = 0 WHERE file = (?)", (self.file_chosen_ls[j].cget("text"),))
+					self.run_query("UPDATE attributes SET date=NULL,person=0,not_useful=0,home=0,park=0,supermarket=0,food_court=0,hospital=0,playground=0,place_of_worship=0,street=0,bus_stop=0,mrt_station=0,walking=0,cycling=0,sitting=0,chatting=0,eating=0,shopping=0,resting=0,others=0 = 0 WHERE file = (?)", (self.file_chosen_ls[j].cget("text"),))
 
 				self.insert_row_data(self.cb_data_ls,j)
 
@@ -334,7 +334,7 @@ class MainApplication(Tk.Tk):
 			if k == 1:
 				db = sqlite3.connect('D:\GitHub\Labeling-Backend\Application\lkydata.db')
 				cur = db.cursor()
-				query_result = cur.execute("UPDATE attributes1 SET " + label + " = (?) WHERE file = (?)", (1,self.file_chosen_ls[n].cget("text"),))
+				query_result = cur.execute("UPDATE attributes SET " + label + " = (?) WHERE file = (?)", (1,self.file_chosen_ls[n].cget("text"),))
 				db.commit()
 
 	def run_query(self,query,parameters=()):
