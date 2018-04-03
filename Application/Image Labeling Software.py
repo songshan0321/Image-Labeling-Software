@@ -17,6 +17,7 @@ class MainApplication(Tk.Tk):
 		self.cb_data_ls = []	# checkbox data list: [(<Tkinter.Checkbutton instance>,1),......]
 		self.file_ls = []	# image list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
 		self.file_chosen_ls = []	# image data list: [<Tkinter.Checkbutton instance>,......]
+		self.datetime_ls = []
 		self.lbl_dict={"Person":"person",
 						"Home":"home",
 						"Playground/Fitness corner (outdoor)":"playground",
@@ -87,8 +88,10 @@ class MainApplication(Tk.Tk):
 
 		self.path_label = Tk.Label(self.left_frame, text = "  Path  :   ").grid(row = 0, column = 0)
 		self.entry = Tk.Entry(self.left_frame, textvariable = self.path, width = 50).grid(row = 0, column = 1)
-		self.b1 = Tk.Button(self.left_frame, text = "Select", command = self.open_photo).grid(row = 0, column = 2)
-		self.b2 = Tk.Button(self.left_frame, text = "Update", command = self.update).grid(row = 0, column = 3)
+		self.b1 = Tk.Button(self.left_frame, text = "Select", bg = "SkyBlue1", command = self.open_photo).grid(row = 0, column = 2)
+		self.b2 = Tk.Button(self.left_frame, text = "Update", bg = "Olivedrab1", command = self.update).grid(row = 0, column = 3)
+		self.b3 = Tk.Button(self.left_frame, text = "Clear checks", command = self.clear_check).grid(row = 0, column = 4)
+		self.b4 = Tk.Button(self.left_frame, text = "Clear labels", command = self.clear_lbl).grid(row = 0, column = 5)
 
 		# right_frame is the frame that displays the tags
 		self.right_frame = Tk.Frame(self.master)
@@ -289,13 +292,17 @@ class MainApplication(Tk.Tk):
 	def update(self):
 		# Take file_ls input and insert into file_chosen_ls
 		self.file_chosen_ls=[]
+		self.datetime_ls=[]
 		for x in self.file_ls:
 			f = x[0]
 			var = x[1]
 			if var.get() == 1:
 				self.file_chosen_ls.append(f)
-				f.configure(state="disabled")
+				self.datetime_ls.append(self.get_datetime(f))
+				f.configure(bg="red")
+				var.set(0)
 		#print self.file_chosen_ls
+		#print self.datetime_ls
 
 		# Take cb_data input and insert into cb_data_ls
 		self.cb_data_ls=[]
@@ -310,9 +317,9 @@ class MainApplication(Tk.Tk):
 
 		# update data to database
 		try: # if file not exist in database, add new row
-			self.run_query("INSERT INTO attributes(file) VALUES (?)", (self.file_chosen_ls[0].cget("text"),))
+			self.run_query("INSERT INTO attributes(file,date) VALUES (?,?)", (self.file_chosen_ls[0].cget("text"),self.datetime_ls[0]))
 		except: # if file exist in database, update it to all 0 first
-			self.run_query("UPDATE attributes SET date=NULL,person=0,home=0,playground=0,void_deck=0,park=0,public_space=0,supermarket=0,market=0,food_court=0,shop=0,mall=0,hospital=0,clinic=0,community_center=0,senior=0,religious=0,transaction=0,fitness=0,bus_stop=0,mrt=0,walkway=0,pedestrian_crossing=0,cycling_path=0,street_lights=0,traffic_lights=0,street_signs=0,trees=0,furniture=0,stairs=0,ramps=0,walk=0,cycle=0,bus=0,train=0,car=0,drive=0,sit=0,chat=0,eat=0,shop=0,run=0,exercise=0,not_useful=0 WHERE file = (?)", (self.file_chosen_ls[0].cget("text"),))
+			self.run_query("UPDATE attributes SET person=0,home=0,playground=0,void_deck=0,park=0,public_space=0,supermarket=0,market=0,food_court=0,shop=0,mall=0,hospital=0,clinic=0,community_center=0,senior=0,religious=0,transaction_ser=0,fitness=0,bus_stop=0,mrt=0,walkway=0,pedestrian_crossing=0,cycling_path=0,street_lights=0,traffic_lights=0,street_signs=0,trees=0,furniture=0,stairs=0,ramps=0,walk=0,cycle=0,bus=0,train=0,car=0,drive=0,sit=0,chat=0,eat=0,shop=0,run=0,exercise=0,not_useful=0 WHERE file = (?)", (self.file_chosen_ls[0].cget("text"),))
 
 		self.insert_row_data(self.cb_data_ls,0)
 
@@ -320,9 +327,9 @@ class MainApplication(Tk.Tk):
 		if len(self.file_chosen_ls) >= 2:
 			for j in range(1,len(self.file_chosen_ls)):
 				try: # if file not exist in database, add new row
-					self.run_query("INSERT INTO attributes(file) VALUES (?)", (self.file_chosen_ls[j].cget("text"),))
+					self.run_query("INSERT INTO attributes(file,date) VALUES (?,?)", (self.file_chosen_ls[j].cget("text"),self.datetime_ls[j]))
 				except: # if file exist in database, update it to all 0 first
-					self.run_query("UPDATE attributes SET date=NULL,person=0,not_useful=0,home=0,park=0,supermarket=0,food_court=0,hospital=0,playground=0,place_of_worship=0,street=0,bus_stop=0,mrt_station=0,walking=0,cycling=0,sitting=0,chatting=0,eating=0,shopping=0,resting=0,others=0 = 0 WHERE file = (?)", (self.file_chosen_ls[j].cget("text"),))
+					self.run_query("UPDATE attributes SET person=0,home=0,playground=0,void_deck=0,park=0,public_space=0,supermarket=0,market=0,food_court=0,shop=0,mall=0,hospital=0,clinic=0,community_center=0,senior=0,religious=0,transaction_ser=0,fitness=0,bus_stop=0,mrt=0,walkway=0,pedestrian_crossing=0,cycling_path=0,street_lights=0,traffic_lights=0,street_signs=0,trees=0,furniture=0,stairs=0,ramps=0,walk=0,cycle=0,bus=0,train=0,car=0,drive=0,sit=0,chat=0,eat=0,shop=0,run=0,exercise=0,not_useful=0 WHERE file = (?)", (self.file_chosen_ls[j].cget("text"),))
 
 				self.insert_row_data(self.cb_data_ls,j)
 
@@ -343,6 +350,24 @@ class MainApplication(Tk.Tk):
 			query_result = cur.execute(query,parameters)
 			db.commit()
 		return query_result
+	
+	def get_datetime(self,f): 
+		name = f.cget("text")  # 20000101_030548_000.jpg  -->  YYYY-MM-DD HH:MI:SS
+		try:
+			datetime = name[0:4] + "-" + name[4:6] + "-" + name[6:8] + " " + name[9:11] + ":" + name[11:13] + ":" + name[13:15]
+		except:
+			datetime = None
+		return datetime
+
+	def clear_lbl(self):
+		for x in self.cb_ls:
+			var = x[1]
+			var.set(0)
+	
+	def clear_check(self):
+		for y in self.file_ls:
+			var = y[1]
+			var.set(0)
 
 root = MainApplication()
 root.mainloop()
