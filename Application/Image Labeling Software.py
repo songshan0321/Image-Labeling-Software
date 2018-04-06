@@ -20,6 +20,7 @@ class MainApplication(Tk.Tk):
 		self.file_ls = []  # image list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
 		self.file_chosen_ls = []  # image data list: [<Tkinter.Checkbutton instance>,......]
 		self.datetime_ls = []
+		self.lbl_ls = ['person','home','playground','void_deck','park','public_space','supermarket','market','food_court','shop','mall','hospital','clinic','community_center','senior','religious','transaction_ser','fitness','bus_stop','mrt','walkway','pedestrian_crossing','cycling_path','street_lights','traffic_lights','street_signs','trees','furniture','stairs','ramps','walk','cycle','bus','train','car','drive','sit','chat','eat','shopping','run','exercise','not_useful']
 		self.lbl_dict = {"Person": "person",
 		                 "Home": "home",
 		                 "Playground/Fitness corner (outdoor)": "playground",
@@ -76,6 +77,7 @@ class MainApplication(Tk.Tk):
 		self.image_frame.grid(row = 1, sticky = "nsew")
 		
 		self.canvas = Tk.Canvas(self.image_frame)
+		self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
 		self.frame_in2 = Tk.Frame(self.canvas)
 		self.my_scrollbar = Tk.Scrollbar(self.image_frame, orient = "vertical", command = self.canvas.yview)
 		self.canvas.configure(yscrollcommand = self.my_scrollbar.set)
@@ -91,7 +93,7 @@ class MainApplication(Tk.Tk):
 
 		self.b1 = Tk.Button(self.left_frame, text = "Select", bg = "SkyBlue1", command = self.open_photo).grid(row = 0,column = 2, padx=2)
 		self.b2 = Tk.Button(self.left_frame, text = "Update", bg = "Olivedrab1", command = self.update).grid(row = 0,column = 3, padx=2)
-		self.b3 = Tk.Button(self.left_frame, text = "Show labels").grid(row = 0, column = 4, padx=5)
+		self.b3 = Tk.Button(self.left_frame, text = "Show labels", command = self.show_lbl).grid(row = 0, column = 4, padx=5)
 		self.b4 = Tk.Button(self.left_frame, text = "Clear checks", command = self.clear_check).grid(row = 0,column = 5, padx=2)
 		self.b5 = Tk.Button(self.left_frame, text = "Clear labels", command = self.clear_lbl).grid(row = 0, column = 6, padx=2)
 
@@ -263,9 +265,10 @@ class MainApplication(Tk.Tk):
 	
 	def my_canvas(self, event):
 		self.canvas.configure(scrollregion = self.canvas.bbox("all"), width = 1000, height = 700)
-	
+
 	def open_photo(self):
 		path_ = tkFileDialog.askdirectory()
+		self.var_msg.set("Importing images...")
 		self.path.set(path_)
 		col = 1
 		row = 1
@@ -296,32 +299,11 @@ class MainApplication(Tk.Tk):
 					col -= 2
 					row += 1
 				self.file_ls.append((c1, var))
+		self.var_msg.set("Imported images successfully")
 	
 	def update(self):
-		# Take file_ls input and insert into file_chosen_ls
-		self.file_chosen_ls = []
-		self.datetime_ls = []
-		for x in self.file_ls:
-			f = x[0]
-			var = x[1]
-			if var.get() == 1:
-				self.file_chosen_ls.append(f)
-				self.datetime_ls.append(self.get_datetime(f))
-				f.configure(bg = "tomato")
-				var.set(0)
-		# print self.file_chosen_ls
-		# print self.datetime_ls
-		
-		# Take cb_data input and insert into cb_data_ls
-		self.cb_data_ls = []
-		for y in self.cb_ls:
-			cb = y[0]
-			var = y[1]
-			if var.get() == 1:
-				self.cb_data_ls.append((cb, 1))
-			else:
-				self.cb_data_ls.append((cb, 0))
-		# print self.cb_data_ls
+		self.update_file_chosen_ls()
+		self.update_cb_data_ls()
 		
 		# update data to database
 		try:  # if file not exist in database, add new row
@@ -349,15 +331,61 @@ class MainApplication(Tk.Tk):
 
 		# show feedback message		
 		msg = str(len(self.file_chosen_ls)) + " Images was labelled with "
+		checked = False # A boolean represent if any label is checked
 		for data in self.cb_data_ls:
 			label = self.lbl_dict[data[0].cget("text")]
 			k = data[1]  # k is a boolean
-			if k == 1:
+			if checked == False:
+				if k == 1:
+					msg = msg + label + ", "
+					checked = True
+			elif k == 1:
 				msg = msg + label + ", "
-		msg = msg[0:-2]
-		msg += "."
-		self.var_msg.set(msg)
+		msg = msg[0:-2] + "."
+		if checked == False:
+			self.var_msg.set("No Label is checked")
+
+		else:
+			self.var_msg.set(msg)
+			# add red color to image
+			for x in self.file_ls:
+				f = x[0]
+				var = x[1]
+				if var.get() == 1:
+					f.configure(bg = "tomato")
+
+		# clear img checks
+		for x in self.file_ls:
+			f = x[0]
+			var = x[1]
+			if var.get() == 1:
+				var.set(0)
 	
+	def update_file_chosen_ls(self):
+		# Take file_ls input and insert into file_chosen_ls
+		self.file_chosen_ls = []
+		self.datetime_ls = []
+		for x in self.file_ls:
+			f = x[0]
+			var = x[1]
+			if var.get() == 1:
+				self.file_chosen_ls.append(f)
+				self.datetime_ls.append(self.get_datetime(f))
+		# print self.file_chosen_ls
+		# print self.datetime_ls
+
+	def update_cb_data_ls(self):
+		# Take cb_data input and insert into cb_data_ls
+		self.cb_data_ls = []
+		for y in self.cb_ls:
+			cb = y[0]
+			var = y[1]
+			if var.get() == 1:
+				self.cb_data_ls.append((cb, 1))
+			else:
+				self.cb_data_ls.append((cb, 0))
+		# print self.cb_data_ls
+		
 	def insert_row_data(self, ls, n):
 		# get data from data_ls and insert into SQL table
 		for data in ls:
@@ -376,13 +404,35 @@ class MainApplication(Tk.Tk):
 			query_result = cur.execute(query, parameters)
 			db.commit()
 		return query_result
-	
+
+	def show_lbl(self):
+		self.update_file_chosen_ls()
+		if len(self.file_chosen_ls) == 0:
+			self.var_msg.set("No image is checked")
+		elif len(self.file_chosen_ls) != 1:
+			self.var_msg.set("Please only check 1 image to show labels")
+		else:
+			img = self.file_chosen_ls[0]
+			name = img.cget("text")
+
+			with sqlite3.connect(self.db_link) as db:
+				cur = db.cursor()
+				cur.execute("SELECT * FROM attributes WHERE file = (?)", (name,))
+			row = cur.fetchall()
+			if len(row) == 0:
+				self.var_msg.set("Can't find "+ str(name) + " in database.")
+			row = row[0][3:]
+			msg = str(name) + ": "
+			for i in range(len(row)):
+				if row[i] == 1:
+					msg = msg + str(self.lbl_ls[i]) + ', '
+			msg = msg[0:-2] + "."
+			self.var_msg.set(msg)
+
 	def get_datetime(self, f):
 		name = f.cget("text")  # 20000101_030548_000.jpg  -->  YYYY-MM-DD HH:MI:SS
 		try:
-			datetime = name[0:4] + "-" + name[4:6] + "-" + name[6:8] + " " + name[9:11] + ":" + name[
-			                                                                                    11:13] + ":" + name[
-			                                                                                                   13:15]
+			datetime = name[0:4] + "-" + name[4:6] + "-" + name[6:8] + " " + name[9:11] + ":" + name[11:13] + ":" + name[13:15]
 		except:
 			datetime = None
 		return datetime
@@ -396,6 +446,9 @@ class MainApplication(Tk.Tk):
 		for y in self.file_ls:
 			var = y[1]
 			var.set(0)
+
+	def _on_mousewheel(self, event):
+		self.canvas.yview_scroll(-1*(event.delta/120), "units")
 
 
 # print('hello world')
