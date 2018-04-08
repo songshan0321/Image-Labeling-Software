@@ -274,7 +274,6 @@ class MainApplication(Tk.Tk):
 		path_ = tkFileDialog.askdirectory()
 		self.var_msg.set("Importing images...")
 		self.path.set(path_)
-
 		self.cb_ls = []  # checkbox list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
 		self.cb_data_ls = []  # checkbox data list: [(<Tkinter.Checkbutton instance>,1),......]
 		self.file_ls = []  # image list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
@@ -287,7 +286,7 @@ class MainApplication(Tk.Tk):
 		self.frame_in2 = Tk.Frame(self.canvas)
 		self.canvas.create_window((0, 0), window = self.frame_in2, anchor = 'nw')
 		self.frame_in2.bind("<Configure>", self.my_canvas)
-
+		
 		self.image_frame.update()
 		width = self.image_frame.winfo_width()
 
