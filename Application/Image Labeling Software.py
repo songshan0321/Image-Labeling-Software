@@ -9,12 +9,12 @@ import sqlite3  # Import the SQLite3 module
 
 class MainApplication(Tk.Tk):
 	image = photo = []
-	
+
 	def __init__(self):
 		Tk.Tk.__init__(self)
 		self.path = Tk.StringVar()
 		self.db_link = "D:\GitHub\Labeling-Backend\Application\lkydata.db"
-		
+
 		self.cb_ls = []  # checkbox list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
 		self.cb_data_ls = []  # checkbox data list: [(<Tkinter.Checkbutton instance>,1),......]
 		self.file_ls = []  # image list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
@@ -64,32 +64,36 @@ class MainApplication(Tk.Tk):
 		                 "Running": "run",
 		                 "Other exercising activity": "exercise",
 		                 "Not Useful": "not_useful"}
-		
+
 		self.title("Photo Labelling Software")
 		self.attributes('-fullscreen', True)
 		self.grid_rowconfigure(1, weight = 1)
 		self.grid_columnconfigure(0, weight = 1)
-		
+
 		# image_frame holds the images and is within left_frame
 		self.left_frame = Tk.Frame(self.master)
 		self.image_frame = Tk.Frame(self.master)
-		self.left_frame.grid(row = 0, sticky = "ew")
+		self.left_frame.grid(row = 0, sticky = "nsew")
 		self.image_frame.grid(row = 1, sticky = "nsew")
-		
+
 		self.canvas = Tk.Canvas(self.image_frame)
 		self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
 		self.frame_in2 = Tk.Frame(self.canvas)
 		self.my_scrollbar = Tk.Scrollbar(self.image_frame, orient = "vertical", command = self.canvas.yview)
 		self.canvas.configure(yscrollcommand = self.my_scrollbar.set)
 		self.my_scrollbar.pack(side = "right", fill = "y")
+
+		self.scroll_horizontal = Tk.Scrollbar(self.image_frame, orient="horizontal", command = self.canvas.xview)
+		self.canvas.configure(xscrollcommand = self.scroll_horizontal.set)
+		self.scroll_horizontal.pack(side = "bottom", fill ="x")
 		self.canvas.pack(side = "left")
-		
+
 		self.canvas.create_window((0, 0), window = self.frame_in2, anchor = 'nw')
-		
+
 		self.frame_in2.bind("<Configure>", self.my_canvas)
-		
+
 		self.path_label = Tk.Label(self.left_frame, text = "Path  :   ").grid(row = 0, column = 0)
-		self.entry = Tk.Entry(self.left_frame, textvariable = self.path, width = 50).grid(row = 0, column = 1)
+		self.entry = Tk.Entry(self.left_frame, textvariable = self.path, width = 30).grid(row = 0, column = 1)
 
 		self.b1 = Tk.Button(self.left_frame, text = "Select", bg = "SkyBlue1", command = self.open_photo).grid(row = 0,column = 2, padx=2)
 		self.b2 = Tk.Button(self.left_frame, text = "Update", bg = "Olivedrab1", command = self.update).grid(row = 0,column = 3, padx=2)
@@ -98,8 +102,8 @@ class MainApplication(Tk.Tk):
 		self.b5 = Tk.Button(self.left_frame, text = "Clear labels", command = self.clear_lbl).grid(row = 0, column = 6, padx=2)
 
 		self.var_msg = Tk.StringVar()
-		self.msg_lbl = Tk.Label(self.left_frame, textvariable=self.var_msg, font=("Helvetica", 12)).grid(row = 1, column = 0, rowspan = 2, columnspan = 10)
-		
+		self.msg_lbl = Tk.Label(self.left_frame, textvariable=self.var_msg, font=("Helvetica", 12)).grid(row = 1, column = 0, columnspan = 10)
+
 		# right_frame is the frame that displays the tags
 		self.right_frame = Tk.Frame(self.master)
 		self.right_frame.grid(sticky = "ne", row = 1, column = 1)
@@ -107,23 +111,25 @@ class MainApplication(Tk.Tk):
 		self.tag_labels.grid(sticky = "n")
 		self.gen_tag_labels()
 
-	
+		self.image_frame.update()
+		print(self.image_frame.winfo_width())
+
 	def gen_tag_labels(self):
 		general_tab = ttk.Frame(self.tag_labels)
 		location_tab = ttk.Frame(self.tag_labels)
 		activity_tab = ttk.Frame(self.tag_labels)
 		others_tab = ttk.Frame(self.tag_labels)
-		
+
 		self.tag_labels.add(general_tab, text = "General")
 		self.tag_labels.add(location_tab, text = "Location/Built Environment Features")
 		self.tag_labels.add(activity_tab, text = "Activity")
 		self.tag_labels.add(others_tab, text = "Others")
-		
+
 		# General Tab
 		var = Tk.IntVar()
 		person = Tk.Checkbutton(general_tab, text = "Person", variable = var)
 		self.cb_ls.append((person, var))
-		
+
 		# Location Tab
 		var = Tk.IntVar()
 		home = Tk.Checkbutton(location_tab, text = "Home", variable = var)
@@ -207,7 +213,7 @@ class MainApplication(Tk.Tk):
 		self.cb_ls.append((trees, var))
 		var = Tk.IntVar()
 		publicgoods = Tk.Checkbutton(location_tab,
-		                             text = "Public furniture (e.g. benches, tables, places related to to sitting/resting)",
+		                             text = "Public furniture (e.g. benches, tables, places related to sitting/resting)",
 		                             variable = var)
 		self.cb_ls.append((publicgoods, var))
 		var = Tk.IntVar()
@@ -216,7 +222,7 @@ class MainApplication(Tk.Tk):
 		var = Tk.IntVar()
 		ramps = Tk.Checkbutton(location_tab, text = "Ramps", variable = var)
 		self.cb_ls.append((ramps, var))
-		
+
 		# Activity Tab
 		var = Tk.IntVar()
 		walk = Tk.Checkbutton(activity_tab, text = "Walking", variable = var)
@@ -254,15 +260,15 @@ class MainApplication(Tk.Tk):
 		var = Tk.IntVar()
 		others = Tk.Checkbutton(activity_tab, text = "Other exercising activity", variable = var)
 		self.cb_ls.append((others, var))
-		
+
 		# Others_tab
 		var = Tk.IntVar()
 		useless = Tk.Checkbutton(others_tab, text = "Not Useful", variable = var)
 		self.cb_ls.append((useless, var))
-		
+
 		for cb in self.cb_ls:
 			cb[0].grid(sticky = "w")
-	
+
 	def my_canvas(self, event):
 		self.canvas.configure(scrollregion = self.canvas.bbox("all"), width = 1000, height = 700)
 
@@ -270,41 +276,33 @@ class MainApplication(Tk.Tk):
 		path_ = tkFileDialog.askdirectory()
 		self.var_msg.set("Importing images...")
 		self.path.set(path_)
-		col = 1
-		row = 1
+		col = 0
+		row = 0
+		no_row = 4
 		self.file_ls = []
+		self.image_frame.update()
+		width = self.image_frame.winfo_width()
 		for file_name in os.listdir(self.path.get()):
 			global image, photo
 			if file_name.endswith(".jpg"):
-				self.image.insert(0, Image.open(os.path.join(self.path.get(), file_name)).resize((280, 190)))
+				self.image.insert(0, Image.open(os.path.join(self.path.get(), file_name)).resize((int(width/no_row-60), 145)))
 				self.photo.insert(0, ImageTk.PhotoImage(self.image[0]))
 				var = Tk.IntVar()
-				if col == 1:
-					c1 = Tk.Checkbutton(self.frame_in2, text = file_name, image = self.photo[0], compound = 'top',
+				c1 = Tk.Checkbutton(self.frame_in2, text = file_name, image = self.photo[0], compound = 'top',
 					                    variable = var, onvalue = 1, offvalue = 0)
-					c1.grid(row = row, column = 0, sticky = Tk.W)
-					# c1.pack()
-					col += 1
-				elif col == 2:
-					c1 = Tk.Checkbutton(self.frame_in2, text = file_name, image = self.photo[0], compound = 'top',
-					                    variable = var, onvalue = 1, offvalue = 0)
-					c1.grid(row = row, column = 1, sticky = Tk.W)
-					# c1.pack()
-					col += 1
-				else:
-					c1 = Tk.Checkbutton(self.frame_in2, text = file_name, image = self.photo[0], compound = 'top',
-					                    variable = var, onvalue = 1, offvalue = 0)
-					c1.grid(row = row, column = 2, sticky = Tk.W)
-					# c1.pack()
-					col -= 2
+				c1.grid(row = row, column = col, sticky = Tk.W)
+				# c1.pack()
+				col += 1
+				if col >= no_row:
 					row += 1
+					col = 0
 				self.file_ls.append((c1, var))
 		self.var_msg.set("Imported images successfully")
-	
+
 	def update(self):
 		self.update_file_chosen_ls()
 		self.update_cb_data_ls()
-		
+
 		# update data to database
 		try:  # if file not exist in database, add new row
 			self.run_query("INSERT INTO attributes(file,date) VALUES (?,?)",
@@ -313,9 +311,9 @@ class MainApplication(Tk.Tk):
 			self.run_query(
 				"UPDATE attributes SET person=0,home=0,playground=0,void_deck=0,park=0,public_space=0,supermarket=0,market=0,food_court=0,shop=0,mall=0,hospital=0,clinic=0,community_center=0,senior=0,religious=0,transaction_ser=0,fitness=0,bus_stop=0,mrt=0,walkway=0,pedestrian_crossing=0,cycling_path=0,street_lights=0,traffic_lights=0,street_signs=0,trees=0,furniture=0,stairs=0,ramps=0,walk=0,cycle=0,bus=0,train=0,car=0,drive=0,sit=0,chat=0,eat=0,shop=0,run=0,exercise=0,not_useful=0 WHERE file = (?)",
 				(self.file_chosen_ls[0].cget("text"),))
-		
+
 		self.insert_row_data(self.cb_data_ls, 0)
-		
+
 		# Run if more than 1 picture being chosen
 		if len(self.file_chosen_ls) >= 2:
 			for j in range(1, len(self.file_chosen_ls)):
@@ -326,12 +324,12 @@ class MainApplication(Tk.Tk):
 					self.run_query(
 						"UPDATE attributes SET person=0,home=0,playground=0,void_deck=0,park=0,public_space=0,supermarket=0,market=0,food_court=0,shop=0,mall=0,hospital=0,clinic=0,community_center=0,senior=0,religious=0,transaction_ser=0,fitness=0,bus_stop=0,mrt=0,walkway=0,pedestrian_crossing=0,cycling_path=0,street_lights=0,traffic_lights=0,street_signs=0,trees=0,furniture=0,stairs=0,ramps=0,walk=0,cycle=0,bus=0,train=0,car=0,drive=0,sit=0,chat=0,eat=0,shop=0,run=0,exercise=0,not_useful=0 WHERE file = (?)",
 						(self.file_chosen_ls[j].cget("text"),))
-				
+
 				self.insert_row_data(self.cb_data_ls, j)
 
-		# show feedback message		
+		# show feedback message
 		msg = str(len(self.file_chosen_ls)) + " Images was labelled with "
-		checked = False # A boolean represent if any label is checked
+		checked = False # A boolean represents if any label is checked
 		for data in self.cb_data_ls:
 			label = self.lbl_dict[data[0].cget("text")]
 			k = data[1]  # k is a boolean
@@ -360,7 +358,7 @@ class MainApplication(Tk.Tk):
 			var = x[1]
 			if var.get() == 1:
 				var.set(0)
-	
+
 	def update_file_chosen_ls(self):
 		# Take file_ls input and insert into file_chosen_ls
 		self.file_chosen_ls = []
@@ -385,7 +383,7 @@ class MainApplication(Tk.Tk):
 			else:
 				self.cb_data_ls.append((cb, 0))
 		# print self.cb_data_ls
-		
+
 	def insert_row_data(self, ls, n):
 		# get data from data_ls and insert into SQL table
 		for data in ls:
@@ -397,7 +395,7 @@ class MainApplication(Tk.Tk):
 				query_result = cur.execute("UPDATE attributes SET " + label + " = (?) WHERE file = (?)",
 				                           (1, self.file_chosen_ls[n].cget("text"),))
 				db.commit()
-	
+
 	def run_query(self, query, parameters = ()):
 		with sqlite3.connect(self.db_link) as db:
 			cur = db.cursor()
@@ -436,12 +434,12 @@ class MainApplication(Tk.Tk):
 		except:
 			datetime = None
 		return datetime
-	
+
 	def clear_lbl(self):
 		for x in self.cb_ls:
 			var = x[1]
 			var.set(0)
-	
+
 	def clear_check(self):
 		for y in self.file_ls:
 			var = y[1]
