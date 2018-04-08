@@ -273,8 +273,21 @@ class MainApplication(Tk.Tk):
 		col = 0
 		row = 0
 		no_row = 4
-		self.file_ls = []
+		
+		self.cb_ls = []  # checkbox list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
+		self.cb_data_ls = []  # checkbox data list: [(<Tkinter.Checkbutton instance>,1),......]
+		self.file_ls = []  # image list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
+		self.file_chosen_ls = []  # image data list: [<Tkinter.Checkbutton instance>,......]
+		self.datetime_ls = []
+		self.image = []
+		self.photo = []
 		self.image_frame.update()
+
+		self.frame_in2.destroy()
+		self.frame_in2 = Tk.Frame(self.canvas)
+		self.canvas.create_window((0, 0), window = self.frame_in2, anchor = 'nw')
+		self.frame_in2.bind("<Configure>", self.my_canvas)
+		
 		width = self.image_frame.winfo_width()
 		for file_name in os.listdir(self.path.get()):
 			global image, photo
