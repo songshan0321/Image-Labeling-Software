@@ -99,7 +99,7 @@ class MainApplication(Tk.Tk):
 		self.b2 = Tk.Button(self.left_frame, text = "Update", bg = "Olivedrab1", command = self.update).grid(row = 0,column = 3, padx=2)
 		self.b3 = Tk.Button(self.left_frame, text = "Show labels", command = self.show_lbl).grid(row = 0, column = 4, padx=2)
 		self.b4 = Tk.Button(self.left_frame, text = "Clear checks", command = self.clear_check).grid(row = 0,column = 5, padx=2)
-		self.b5 = Tk.Button(self.left_frame, text = "Clear labels", command = self.clear_lbl).grid(row = 0, column = 6, padx=2)
+		self.b5 = Tk.Button(self.left_frame, text = "Clear attribute", command = self.clear_atribute).grid(row = 0, column = 6, padx=2)
 
 		self.var_msg = Tk.StringVar()
 		self.msg_lbl = Tk.Label(self.left_frame, textvariable=self.var_msg, font=("Helvetica", 12)).grid(row = 1, column = 0, columnspan = 10)
@@ -110,9 +110,6 @@ class MainApplication(Tk.Tk):
 		self.tag_labels = ttk.Notebook(self.right_frame)
 		self.tag_labels.grid(sticky = "n")
 		self.gen_tag_labels()
-
-		self.image_frame.update()
-		print(self.image_frame.winfo_width())
 
 	def gen_tag_labels(self):
 		general_tab = ttk.Frame(self.tag_labels)
@@ -181,8 +178,7 @@ class MainApplication(Tk.Tk):
 		services = Tk.Checkbutton(location_tab, text = "Transaction services (e.g. bank, post office)", variable = var)
 		self.cb_ls.append((services, var))
 		var = Tk.IntVar()
-		indoors = Tk.Checkbutton(location_tab, text = "Indoor fitness facility (e.g. sports hall, gym, swimming pool)",
-		                         variable = var)
+		indoors = Tk.Checkbutton(location_tab, text = "Indoor fitness facility (e.g. sports hall, gym, swimming pool)", variable = var)
 		self.cb_ls.append((hospital, var))
 		var = Tk.IntVar()
 		bus_stop = Tk.Checkbutton(location_tab, text = "Bus Stop/Interchange", variable = var)
@@ -212,9 +208,7 @@ class MainApplication(Tk.Tk):
 		trees = Tk.Checkbutton(location_tab, text = "Trees/Grass", variable = var)
 		self.cb_ls.append((trees, var))
 		var = Tk.IntVar()
-		publicgoods = Tk.Checkbutton(location_tab,
-		                             text = "Public furniture (e.g. benches, tables, places related to sitting/resting)",
-		                             variable = var)
+		publicgoods = Tk.Checkbutton(location_tab, text = "Public furniture (e.g. benches, tables, places related to to sitting/resting)", variable = var)
 		self.cb_ls.append((publicgoods, var))
 		var = Tk.IntVar()
 		stairs = Tk.Checkbutton(location_tab, text = "Stairs and level changes", variable = var)
@@ -313,61 +307,65 @@ class MainApplication(Tk.Tk):
 		self.update_file_chosen_ls()
 		self.update_cb_data_ls()
 
-		# update data to database
-		try:  # if file not exist in database, add new row
-			self.run_query("INSERT INTO attributes(file,date) VALUES (?,?)",
-			               (self.file_chosen_ls[0].cget("text"), self.datetime_ls[0]))
-		except:  # if file exist in database, update it to all 0 first
-			self.run_query(
-				"UPDATE attributes SET person=0,home=0,playground=0,void_deck=0,park=0,public_space=0,supermarket=0,market=0,food_court=0,shop=0,mall=0,hospital=0,clinic=0,community_center=0,senior=0,religious=0,transaction_ser=0,fitness=0,bus_stop=0,mrt=0,walkway=0,pedestrian_crossing=0,cycling_path=0,street_lights=0,traffic_lights=0,street_signs=0,trees=0,furniture=0,stairs=0,ramps=0,walk=0,cycle=0,bus=0,train=0,car=0,drive=0,sit=0,chat=0,eat=0,shop=0,run=0,exercise=0,not_useful=0 WHERE file = (?)",
-				(self.file_chosen_ls[0].cget("text"),))
-
-		self.insert_row_data(self.cb_data_ls, 0)
-
-		# Run if more than 1 picture being chosen
-		if len(self.file_chosen_ls) >= 2:
-			for j in range(1, len(self.file_chosen_ls)):
-				try:  # if file not exist in database, add new row
-					self.run_query("INSERT INTO attributes(file,date) VALUES (?,?)",
-					               (self.file_chosen_ls[j].cget("text"), self.datetime_ls[j]))
-				except:  # if file exist in database, update it to all 0 first
-					self.run_query(
-						"UPDATE attributes SET person=0,home=0,playground=0,void_deck=0,park=0,public_space=0,supermarket=0,market=0,food_court=0,shop=0,mall=0,hospital=0,clinic=0,community_center=0,senior=0,religious=0,transaction_ser=0,fitness=0,bus_stop=0,mrt=0,walkway=0,pedestrian_crossing=0,cycling_path=0,street_lights=0,traffic_lights=0,street_signs=0,trees=0,furniture=0,stairs=0,ramps=0,walk=0,cycle=0,bus=0,train=0,car=0,drive=0,sit=0,chat=0,eat=0,shop=0,run=0,exercise=0,not_useful=0 WHERE file = (?)",
-						(self.file_chosen_ls[j].cget("text"),))
-
-				self.insert_row_data(self.cb_data_ls, j)
-
-		# show feedback message
-		msg = str(len(self.file_chosen_ls)) + " Images was labelled with "
-		checked = False # A boolean represents if any label is checked
-		for data in self.cb_data_ls:
-			label = self.lbl_dict[data[0].cget("text")]
-			k = data[1]  # k is a boolean
-			if checked == False:
-				if k == 1:
-					msg = msg + label + ", "
-					checked = True
-			elif k == 1:
-				msg = msg + label + ", "
-		msg = msg[0:-2] + "."
-		if checked == False:
-			self.var_msg.set("No Label is checked")
+		if len(self.file_chosen_ls) < 1:
+			self.var_msg.set("Please choose at least one image")
 
 		else:
-			self.var_msg.set(msg)
-			# add red color to image
-			for x in self.file_ls:
-				f = x[0]
-				var = x[1]
-				if var.get() == 1:
-					f.configure(bg = "tomato")
+			# update data to database
+			try:  # if file not exist in database, add new row
+				self.run_query("INSERT INTO attributes(file,date) VALUES (?,?)",
+							(self.file_chosen_ls[0].cget("text"), self.datetime_ls[0]))
+			except:  # if file exist in database, update it to all 0 first
+				self.run_query(
+					"UPDATE attributes SET person=0,home=0,playground=0,void_deck=0,park=0,public_space=0,supermarket=0,market=0,food_court=0,shop=0,mall=0,hospital=0,clinic=0,community_center=0,senior=0,religious=0,transaction_ser=0,fitness=0,bus_stop=0,mrt=0,walkway=0,pedestrian_crossing=0,cycling_path=0,street_lights=0,traffic_lights=0,street_signs=0,trees=0,furniture=0,stairs=0,ramps=0,walk=0,cycle=0,bus=0,train=0,car=0,drive=0,sit=0,chat=0,eat=0,shop=0,run=0,exercise=0,not_useful=0 WHERE file = (?)",
+					(self.file_chosen_ls[0].cget("text"),))
 
-		# clear img checks
-		for x in self.file_ls:
-			f = x[0]
-			var = x[1]
-			if var.get() == 1:
-				var.set(0)
+			self.insert_row_data(self.cb_data_ls, 0)
+
+			# Run if more than 1 picture being chosen
+			if len(self.file_chosen_ls) >= 2:
+				for j in range(1, len(self.file_chosen_ls)):
+					try:  # if file not exist in database, add new row
+						self.run_query("INSERT INTO attributes(file,date) VALUES (?,?)",
+									(self.file_chosen_ls[j].cget("text"), self.datetime_ls[j]))
+					except:  # if file exist in database, update it to all 0 first
+						self.run_query(
+							"UPDATE attributes SET person=0,home=0,playground=0,void_deck=0,park=0,public_space=0,supermarket=0,market=0,food_court=0,shop=0,mall=0,hospital=0,clinic=0,community_center=0,senior=0,religious=0,transaction_ser=0,fitness=0,bus_stop=0,mrt=0,walkway=0,pedestrian_crossing=0,cycling_path=0,street_lights=0,traffic_lights=0,street_signs=0,trees=0,furniture=0,stairs=0,ramps=0,walk=0,cycle=0,bus=0,train=0,car=0,drive=0,sit=0,chat=0,eat=0,shop=0,run=0,exercise=0,not_useful=0 WHERE file = (?)",
+							(self.file_chosen_ls[j].cget("text"),))
+
+					self.insert_row_data(self.cb_data_ls, j)
+
+			# show feedback message
+			msg = str(len(self.file_chosen_ls)) + " Images was labelled with "
+			checked = False # A boolean represents if any label is checked
+			for data in self.cb_data_ls:
+				label = self.lbl_dict[data[0].cget("text")]
+				k = data[1]  # k is a boolean
+				if checked == False:
+					if k == 1:
+						msg = msg + label + ", "
+						checked = True
+				elif k == 1:
+					msg = msg + label + ", "
+			msg = msg[0:-2] + "."
+			if checked == False:
+				self.var_msg.set("Please choose at least one attribute")
+
+			else:
+				self.var_msg.set(msg)
+				# add red color to image
+				for x in self.file_ls:
+					f = x[0]
+					var = x[1]
+					if var.get() == 1:
+						f.configure(bg = "tomato")
+
+				# clear img checks
+				for x in self.file_ls:
+					f = x[0]
+					var = x[1]
+					if var.get() == 1:
+						var.set(0)
 
 	def update_file_chosen_ls(self):
 		# Take file_ls input and insert into file_chosen_ls
@@ -379,7 +377,7 @@ class MainApplication(Tk.Tk):
 			if var.get() == 1:
 				self.file_chosen_ls.append(f)
 				self.datetime_ls.append(self.get_datetime(f))
-		# print self.file_chosen_ls
+		#print self.file_chosen_ls
 		# print self.datetime_ls
 
 	def update_cb_data_ls(self):
@@ -429,13 +427,14 @@ class MainApplication(Tk.Tk):
 			row = cur.fetchall()
 			if len(row) == 0:
 				self.var_msg.set("Can't find "+ str(name) + " in database.")
-			row = row[0][3:]
-			msg = str(name) + ": "
-			for i in range(len(row)):
-				if row[i] == 1:
-					msg = msg + str(self.lbl_ls[i]) + ', '
-			msg = msg[0:-2] + "."
-			self.var_msg.set(msg)
+			else:
+				row = row[0][3:]
+				msg = str(name) + ": "
+				for i in range(len(row)):
+					if row[i] == 1:
+						msg = msg + str(self.lbl_ls[i]) + ', '
+				msg = msg[0:-2] + "."
+				self.var_msg.set(msg)
 
 	def get_datetime(self, f):
 		name = f.cget("text")  # 20000101_030548_000.jpg  -->  YYYY-MM-DD HH:MI:SS
@@ -445,7 +444,7 @@ class MainApplication(Tk.Tk):
 			datetime = None
 		return datetime
 
-	def clear_lbl(self):
+	def clear_atribute(self):
 		for x in self.cb_ls:
 			var = x[1]
 			var.set(0)
@@ -457,7 +456,7 @@ class MainApplication(Tk.Tk):
 
 	def _on_mousewheel(self, event):
 		self.canvas.yview_scroll(-1*(event.delta/120), "units")
-		
+
 # print('hello world')
 root = MainApplication()
 root.mainloop()
