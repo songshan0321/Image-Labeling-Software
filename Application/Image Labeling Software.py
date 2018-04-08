@@ -97,7 +97,7 @@ class MainApplication(Tk.Tk):
 
 		self.b1 = Tk.Button(self.left_frame, text = "Select", bg = "SkyBlue1", command = self.open_photo).grid(row = 0,column = 2, padx=2)
 		self.b2 = Tk.Button(self.left_frame, text = "Update", bg = "Olivedrab1", command = self.update).grid(row = 0,column = 3, padx=2)
-		self.b3 = Tk.Button(self.left_frame, text = "Show labels", command = self.show_lbl).grid(row = 0, column = 4, padx=5)
+		self.b3 = Tk.Button(self.left_frame, text = "Show labels", command = self.show_lbl).grid(row = 0, column = 4, padx=2)
 		self.b4 = Tk.Button(self.left_frame, text = "Clear checks", command = self.clear_check).grid(row = 0,column = 5, padx=2)
 		self.b5 = Tk.Button(self.left_frame, text = "Clear labels", command = self.clear_lbl).grid(row = 0, column = 6, padx=2)
 
@@ -299,6 +299,16 @@ class MainApplication(Tk.Tk):
 				self.file_ls.append((c1, var))
 		self.var_msg.set("Imported images successfully")
 
+		with sqlite3.connect(self.db_link) as db:
+			cur = db.cursor()
+			for x in self.file_ls:
+				f = x[0]
+				name = f.cget("text")
+				cur.execute("SELECT id FROM attributes WHERE file = (?)", (name,))
+				row = cur.fetchall()
+				if len(row) != 0:
+					f.configure(bg = "tomato")
+
 	def update(self):
 		self.update_file_chosen_ls()
 		self.update_cb_data_ls()
@@ -447,8 +457,7 @@ class MainApplication(Tk.Tk):
 
 	def _on_mousewheel(self, event):
 		self.canvas.yview_scroll(-1*(event.delta/120), "units")
-
-
+		
 # print('hello world')
 root = MainApplication()
 root.mainloop()
