@@ -13,7 +13,7 @@ class MainApplication(Tk.Tk):
 	def __init__(self):
 		Tk.Tk.__init__(self)
 		self.path = Tk.StringVar()
-		self.db_link = "D:\GitHub\Labeling-Backend\Application\lkydata.db"
+		self.db_link = "lkydata.db"
 
 		self.cb_ls = []  # checkbox list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
 		self.cb_data_ls = []  # checkbox data list: [(<Tkinter.Checkbutton instance>,1),......]
@@ -48,7 +48,7 @@ class MainApplication(Tk.Tk):
 		                 "Traffic lights": "traffic_lights",
 		                 "Street signs": "street_signs",
 		                 "Trees/Grass": "trees",
-		                 "Public furniture (e.g. benches, tables, places related to to sitting/resting)": "furniture",
+		                 "Public furniture (e.g. benches, tables)": "furniture",
 		                 "Stairs and level changes": "stairs",
 		                 "Ramps": "ramps",
 		                 "Walking": "walk",
@@ -69,7 +69,7 @@ class MainApplication(Tk.Tk):
 		self.attributes('-fullscreen', True)
 		self.grid_rowconfigure(1, weight = 1)
 		self.grid_columnconfigure(0, weight = 1)
-
+		
 		# image_frame holds the images and is within left_frame
 		self.left_frame = Tk.Frame(self.master)
 		self.image_frame = Tk.Frame(self.master)
@@ -97,9 +97,9 @@ class MainApplication(Tk.Tk):
 
 		self.b1 = Tk.Button(self.left_frame, text = "Select", bg = "SkyBlue1", command = self.open_photo).grid(row = 0,column = 2, padx=2)
 		self.b2 = Tk.Button(self.left_frame, text = "Update", bg = "Olivedrab1", command = self.update).grid(row = 0,column = 3, padx=2)
-		self.b3 = Tk.Button(self.left_frame, text = "Show labels", command = self.show_lbl).grid(row = 0, column = 4, padx=2)
-		self.b4 = Tk.Button(self.left_frame, text = "Clear checks", command = self.clear_check).grid(row = 0,column = 5, padx=2)
-		self.b5 = Tk.Button(self.left_frame, text = "Clear attribute", command = self.clear_atribute).grid(row = 0, column = 6, padx=2)
+		self.b3 = Tk.Button(self.left_frame, text = "Show labels", bg = "SkyBlue1", command = self.show_lbl).grid(row = 0, column = 4, padx=2)
+		self.b4 = Tk.Button(self.left_frame, text = "Clear checks", bg = "SkyBlue1", command = self.clear_check).grid(row = 0,column = 5, padx=2)
+		self.b5 = Tk.Button(self.left_frame, text = "Clear attribute", bg = "SkyBlue1", command = self.clear_atribute).grid(row = 0, column = 6, padx=2)
 
 		self.var_msg = Tk.StringVar()
 		self.msg_lbl = Tk.Label(self.left_frame, textvariable=self.var_msg, font=("Helvetica", 12)).grid(row = 1, column = 0, columnspan = 10)
@@ -110,6 +110,10 @@ class MainApplication(Tk.Tk):
 		self.tag_labels = ttk.Notebook(self.right_frame)
 		self.tag_labels.grid(sticky = "n")
 		self.gen_tag_labels()
+
+		self.image_frame.update()
+		width = self.image_frame.winfo_width()
+		print width
 
 	def gen_tag_labels(self):
 		general_tab = ttk.Frame(self.tag_labels)
@@ -208,7 +212,7 @@ class MainApplication(Tk.Tk):
 		trees = Tk.Checkbutton(location_tab, text = "Trees/Grass", variable = var)
 		self.cb_ls.append((trees, var))
 		var = Tk.IntVar()
-		publicgoods = Tk.Checkbutton(location_tab, text = "Public furniture (e.g. benches, tables, places related to to sitting/resting)", variable = var)
+		publicgoods = Tk.Checkbutton(location_tab, text = "Public furniture (e.g. benches, tables)", variable = var)
 		self.cb_ls.append((publicgoods, var))
 		var = Tk.IntVar()
 		stairs = Tk.Checkbutton(location_tab, text = "Stairs and level changes", variable = var)
@@ -270,16 +274,37 @@ class MainApplication(Tk.Tk):
 		path_ = tkFileDialog.askdirectory()
 		self.var_msg.set("Importing images...")
 		self.path.set(path_)
-		col = 0
-		row = 0
-		no_row = 4
-		self.file_ls = []
+
+		self.cb_ls = []  # checkbox list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
+		self.cb_data_ls = []  # checkbox data list: [(<Tkinter.Checkbutton instance>,1),......]
+		self.file_ls = []  # image list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
+		self.file_chosen_ls = []  # image data list: [<Tkinter.Checkbutton instance>,......]
+		self.datetime_ls = []
+		self.image = []
+		self.photo = []
+
+		self.frame_in2.destroy()
+		self.frame_in2 = Tk.Frame(self.canvas)
+		self.canvas.create_window((0, 0), window = self.frame_in2, anchor = 'nw')
+		self.frame_in2.bind("<Configure>", self.my_canvas)
+
 		self.image_frame.update()
 		width = self.image_frame.winfo_width()
+
+		col = 0
+		row = 0
+		
+		if width < 900:
+			no_row = 3
+			padding = 30
+		else:
+			no_row = 4
+			padding = 75
+
 		for file_name in os.listdir(self.path.get()):
 			global image, photo
 			if file_name.endswith(".jpg"):
-				self.image.insert(0, Image.open(os.path.join(self.path.get(), file_name)).resize((int(width/no_row-60), 145)))
+				self.image.insert(0, Image.open(os.path.join(self.path.get(), file_name)).resize((int(width/no_row-padding), 145)))
 				self.photo.insert(0, ImageTk.PhotoImage(self.image[0]))
 				var = Tk.IntVar()
 				c1 = Tk.Checkbutton(self.frame_in2, text = file_name, image = self.photo[0], compound = 'top',
@@ -457,6 +482,6 @@ class MainApplication(Tk.Tk):
 	def _on_mousewheel(self, event):
 		self.canvas.yview_scroll(-1*(event.delta/120), "units")
 
-# print('hello world')
+
 root = MainApplication()
 root.mainloop()
