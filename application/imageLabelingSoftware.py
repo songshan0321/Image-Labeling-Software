@@ -13,7 +13,7 @@ class MainApplication(Tk.Tk):
 	def __init__(self):
 		Tk.Tk.__init__(self)
 		self.path = Tk.StringVar()
-		self.db_link = "lkydata.db"
+		self.db_link = "../database/lkydata.db"
 
 		self.cb_ls = []  # checkbox list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
 		self.cb_data_ls = []  # checkbox data list: [(<Tkinter.Checkbutton instance>,1),......]
