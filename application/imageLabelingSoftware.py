@@ -68,17 +68,21 @@ class MainApplication(Tk.Tk):
 		self.title("Photo Labelling Software")
 		self.attributes('-fullscreen', True)
 		self.grid_rowconfigure(1, weight = 1)
-		self.grid_columnconfigure(0, weight = 1)
+		self.grid_columnconfigure(1, weight = 1)
 		
-		# image_frame holds the images and is within left_frame
-		self.left_frame = Tk.Frame(self.master)
+		# top_frame
+		self.top_frame = Tk.Frame(self.master)
+		self.top_frame.grid(row = 0, column = 0, columnspan=3, sticky="EW")
+		# image frame
 		self.image_frame = Tk.Frame(self.master)
-		self.left_frame.grid(row = 0, sticky = "nsew")
-		self.image_frame.grid(row = 1, sticky = "nsew")
+		self.image_frame.grid(row = 1, column = 0, columnspan=3, sticky="NSEW")
+		# right_frame
+		self.right_frame = Tk.Frame(self.master)
+		self.right_frame.grid(row = 0, column = 3, rowspan=2, sticky="NSEW")
 
-		self.canvas = Tk.Canvas(self.image_frame)
+		self.canvas = Tk.Canvas(self.image_frame, width=900, height=900)
 		self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
-		self.frame_in2 = Tk.Frame(self.canvas)
+		self.frame_in2 = Tk.Frame(self.canvas,width=1000)
 		self.my_scrollbar = Tk.Scrollbar(self.image_frame, orient = "vertical", command = self.canvas.yview)
 		self.canvas.configure(yscrollcommand = self.my_scrollbar.set)
 		self.my_scrollbar.pack(side = "right", fill = "y")
@@ -86,34 +90,31 @@ class MainApplication(Tk.Tk):
 		self.scroll_horizontal = Tk.Scrollbar(self.image_frame, orient="horizontal", command = self.canvas.xview)
 		self.canvas.configure(xscrollcommand = self.scroll_horizontal.set)
 		self.scroll_horizontal.pack(side = "bottom", fill ="x")
-		self.canvas.pack(side = "left")
-
+		self.canvas.pack(side="left")
 		self.canvas.create_window((0, 0), window = self.frame_in2, anchor = 'nw')
 
-		self.frame_in2.bind("<Configure>", self.my_canvas)
+		self.frame_in2.bind("<Configure>", self.my_canvas) 
 
-		self.path_label = Tk.Label(self.left_frame, text = "Path  :   ").grid(row = 0, column = 0)
-		self.entry = Tk.Entry(self.left_frame, textvariable = self.path, width = 30).grid(row = 0, column = 1)
+		self.path_label = Tk.Label(self.top_frame, text = "Path  :   ").grid(row = 0, column = 0)
+		self.entry = Tk.Entry(self.top_frame, textvariable = self.path, width = 30).grid(row = 0, column = 1)
 
-		self.b1 = Tk.Button(self.left_frame, text = "Select", bg = "SkyBlue1", command = self.open_photo).grid(row = 0,column = 2, padx=2)
-		self.b2 = Tk.Button(self.left_frame, text = "Update", bg = "Olivedrab1", command = self.update).grid(row = 0,column = 3, padx=2)
-		self.b3 = Tk.Button(self.left_frame, text = "Show labels", bg = "SkyBlue1", command = self.show_lbl).grid(row = 0, column = 4, padx=2)
-		self.b4 = Tk.Button(self.left_frame, text = "Clear checks", bg = "SkyBlue1", command = self.clear_check).grid(row = 0,column = 5, padx=2)
-		self.b5 = Tk.Button(self.left_frame, text = "Clear attribute", bg = "SkyBlue1", command = self.clear_atribute).grid(row = 0, column = 6, padx=2)
+		self.b1 = Tk.Button(self.top_frame, text = "Select", bg = "SkyBlue1", command = self.open_photo).grid(row = 0,column = 2, padx=2)
+		self.b2 = Tk.Button(self.top_frame, text = "Update", bg = "Olivedrab1", command = self.update).grid(row = 0,column = 3, padx=2)
+		self.b3 = Tk.Button(self.top_frame, text = "Show labels", bg = "SkyBlue1", command = self.show_lbl).grid(row = 0, column = 4, padx=2)
+		self.b4 = Tk.Button(self.top_frame, text = "Clear checks", bg = "SkyBlue1", command = self.clear_check).grid(row = 0,column = 5, padx=2)
+		self.b5 = Tk.Button(self.top_frame, text = "Clear attribute", bg = "SkyBlue1", command = self.clear_atribute).grid(row = 0, column = 6, padx=2)
 
 		self.var_msg = Tk.StringVar()
-		self.msg_lbl = Tk.Label(self.left_frame, textvariable=self.var_msg, font=("Helvetica", 12)).grid(row = 1, column = 0, columnspan = 10)
+		self.msg_lbl = Tk.Label(self.top_frame, textvariable=self.var_msg, font=("Helvetica", 12)).grid(row = 1, column = 0, columnspan = 10)
 
-		# right_frame is the frame that displays the tags
-		self.right_frame = Tk.Frame(self.master)
-		self.right_frame.grid(sticky = "ne", row = 1, column = 1)
 		self.tag_labels = ttk.Notebook(self.right_frame)
-		self.tag_labels.grid(sticky = "n")
+		self.tag_labels.grid(sticky = "NSE")
 		self.gen_tag_labels()
 
 		self.image_frame.update()
 		width = self.image_frame.winfo_width()
-		print (width)
+		print ("image_frame width = " + str(width))
+		# print (self.cb_data_ls)
 
 	def gen_tag_labels(self):
 		general_tab = ttk.Frame(self.tag_labels)
@@ -268,11 +269,11 @@ class MainApplication(Tk.Tk):
 			cb[0].grid(sticky = "w")
 
 	def my_canvas(self, event):
-		self.canvas.configure(scrollregion = self.canvas.bbox("all"), width = 1000, height = 700)
+		self.canvas.configure(scrollregion = self.canvas.bbox("all"), width = 1500, height = 1000)
 
 	def open_photo(self):
 		path_ = tkFileDialog.askdirectory()
-		self.var_msg.set("Importing images...")
+		self.var_msg.set("Importing images... This may tak awhile =) ")
 		self.path.set(path_)
 		self.cb_ls = []  # checkbox list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
 		self.cb_data_ls = []  # checkbox data list: [(<Tkinter.Checkbutton instance>,1),......]
@@ -284,8 +285,10 @@ class MainApplication(Tk.Tk):
 
 		self.frame_in2.destroy()
 		self.frame_in2 = Tk.Frame(self.canvas)
-		self.canvas.create_window((0, 0), window = self.frame_in2, anchor = 'nw')
-		self.frame_in2.bind("<Configure>", self.my_canvas)
+		# self.canvas.create_window((0, 0), window = self.frame_in2, anchor="center", height="25c", width="15c")
+		# self.frame_in2.grid()
+		self.canvas.create_window((0, 0), window = self.frame_in2, anchor = 'nw') 
+		self.frame_in2.bind("<Configure>", self.my_canvas) 
 		
 		self.image_frame.update()
 		width = self.image_frame.winfo_width()
@@ -293,29 +296,26 @@ class MainApplication(Tk.Tk):
 		col = 0
 		row = 0
 		
-		if width < 900:
+		if width < 1300:
 			no_row = 3
-			padding = 30
 		else:
 			no_row = 4
-			padding = 75
 
 		for file_name in os.listdir(self.path.get()):
 			global image, photo
-			if file_name.endswith(".jpg"):
-				self.image.insert(0, Image.open(os.path.join(self.path.get(), file_name)).resize((int(width/no_row-padding), 145)))
+			if file_name.endswith(".jpg") or file_name.endswith(".jpeg"):
+				self.image.insert(0, Image.open(os.path.join(self.path.get(), file_name)).resize((260, 145)))
 				self.photo.insert(0, ImageTk.PhotoImage(self.image[0]))
 				var = Tk.IntVar()
-				c1 = Tk.Checkbutton(self.frame_in2, text = file_name, image = self.photo[0], compound = 'top',
-					                    variable = var, onvalue = 1, offvalue = 0)
-				c1.grid(row = row, column = col, sticky = Tk.W)
+				c1 = Tk.Checkbutton(self.frame_in2, text = file_name, image = self.photo[0], variable = var, onvalue = 1, offvalue = 0, width = 200)
+				c1.grid(row = row, column = col)
 				# c1.pack()
 				col += 1
 				if col >= no_row:
 					row += 1
 					col = 0
 				self.file_ls.append((c1, var))
-		self.var_msg.set("Imported images successfully")
+		self.var_msg.set("Imported " + str(len(self.file_ls)) + " images successfully")
 
 		with sqlite3.connect(self.db_link) as db:
 			cur = db.cursor()
@@ -414,7 +414,7 @@ class MainApplication(Tk.Tk):
 				self.cb_data_ls.append((cb, 1))
 			else:
 				self.cb_data_ls.append((cb, 0))
-		# print self.cb_data_ls
+		print self.cb_data_ls
 
 	def insert_row_data(self, ls, n):
 		# get data from data_ls and insert into SQL table
