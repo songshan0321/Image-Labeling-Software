@@ -5,6 +5,9 @@ import Tkinter as Tk
 import ttk
 from PIL import Image, ImageTk
 import sqlite3  # Import the SQLite3 module
+import csv
+from datetime import datetime
+import platform
 
 
 class MainApplication(Tk.Tk):
@@ -14,6 +17,16 @@ class MainApplication(Tk.Tk):
 		Tk.Tk.__init__(self)
 		self.path = Tk.StringVar()
 		self.db_link = "../database/lkydata.db"
+
+		# Checkbutton width for different Operating System
+		if platform.system() == 'Linux':
+			self.cb_width = 200 # Checkbutton width
+		elif platform.system() == 'Darwin': # OSX
+			self.cb_width = 200
+		elif platform.system() == 'Windows':
+			self.cb_width = 300
+		else:
+			self.cb_width = 200
 
 		self.cb_ls = []  # checkbox list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
 		self.cb_data_ls = []  # checkbox data list: [(<Tkinter.Checkbutton instance>,1),......]
@@ -98,11 +111,13 @@ class MainApplication(Tk.Tk):
 		self.path_label = Tk.Label(self.top_frame, text = "Path  :   ").grid(row = 0, column = 0)
 		self.entry = Tk.Entry(self.top_frame, textvariable = self.path, width = 30).grid(row = 0, column = 1)
 
-		self.b1 = Tk.Button(self.top_frame, text = "Select", bg = "SkyBlue1", command = self.open_photo).grid(row = 0,column = 2, padx=2)
-		self.b2 = Tk.Button(self.top_frame, text = "Update", bg = "Olivedrab1", command = self.update).grid(row = 0,column = 3, padx=2)
-		self.b3 = Tk.Button(self.top_frame, text = "Show labels", bg = "SkyBlue1", command = self.show_lbl).grid(row = 0, column = 4, padx=2)
-		self.b4 = Tk.Button(self.top_frame, text = "Clear checks", bg = "SkyBlue1", command = self.clear_check).grid(row = 0,column = 5, padx=2)
-		self.b5 = Tk.Button(self.top_frame, text = "Clear attribute", bg = "SkyBlue1", command = self.clear_atribute).grid(row = 0, column = 6, padx=2)
+		self.b1 = Tk.Button(self.top_frame, text = "Select", bg = "light gray", command = self.open_photo).grid(row = 0,column = 2, padx=2)
+		self.b2 = Tk.Button(self.top_frame, text = "Update", bg = "SpringGreen2", command = self.update).grid(row = 0,column = 3, padx=2)
+		self.b3 = Tk.Button(self.top_frame, text = "Show Labels", bg = "light gray", command = self.show_lbl).grid(row = 0, column = 4, padx=2)
+		self.b4 = Tk.Button(self.top_frame, text = "Clear Checks", bg = "light gray", command = self.clear_check).grid(row = 0,column = 5, padx=2)
+		self.b5 = Tk.Button(self.top_frame, text = "Clear Attribute", bg = "light gray", command = self.clear_atribute).grid(row = 0, column = 6, padx=2)
+		self.b6 = Tk.Button(self.top_frame, text = "Export CSV File", bg = "SpringGreen2", command = self.export_csv).grid(row = 0, column = 7, padx=2)
+		self.b7 = Tk.Button(self.top_frame, text="Quit", bg = "Red", command=self.destroy).grid(row = 0, column = 8, padx=100)
 
 		self.var_msg = Tk.StringVar()
 		self.msg_lbl = Tk.Label(self.top_frame, textvariable=self.var_msg, font=("Helvetica", 12)).grid(row = 1, column = 0, columnspan = 10)
@@ -114,6 +129,7 @@ class MainApplication(Tk.Tk):
 		self.image_frame.update()
 		width = self.image_frame.winfo_width()
 		print ("image_frame width = " + str(width))
+		print ("System: %s"%platform.system())
 		# print (self.cb_data_ls)
 
 	def gen_tag_labels(self):
@@ -273,10 +289,8 @@ class MainApplication(Tk.Tk):
 
 	def open_photo(self):
 		path_ = tkFileDialog.askdirectory()
-		self.var_msg.set("Importing images... This may tak awhile =) ")
+		self.var_msg.set("Importing images... This may take awhile =) ")
 		self.path.set(path_)
-		self.cb_ls = []  # checkbox list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
-		self.cb_data_ls = []  # checkbox data list: [(<Tkinter.Checkbutton instance>,1),......]
 		self.file_ls = []  # image list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
 		self.file_chosen_ls = []  # image data list: [<Tkinter.Checkbutton instance>,......]
 		self.datetime_ls = []
@@ -300,6 +314,7 @@ class MainApplication(Tk.Tk):
 			no_row = 3
 		else:
 			no_row = 4
+		
 
 		for file_name in os.listdir(self.path.get()):
 			global image, photo
@@ -307,7 +322,7 @@ class MainApplication(Tk.Tk):
 				self.image.insert(0, Image.open(os.path.join(self.path.get(), file_name)).resize((260, 145)))
 				self.photo.insert(0, ImageTk.PhotoImage(self.image[0]))
 				var = Tk.IntVar()
-				c1 = Tk.Checkbutton(self.frame_in2, text = file_name, image = self.photo[0], variable = var, onvalue = 1, offvalue = 0, width = 200)
+				c1 = Tk.Checkbutton(self.frame_in2, text = file_name, image = self.photo[0], variable = var, onvalue = 1, offvalue = 0, width = self.cb_width)
 				c1.grid(row = row, column = col)
 				# c1.pack()
 				col += 1
@@ -401,8 +416,8 @@ class MainApplication(Tk.Tk):
 			if var.get() == 1:
 				self.file_chosen_ls.append(f)
 				self.datetime_ls.append(self.get_datetime(f))
-		#print self.file_chosen_ls
-		# print self.datetime_ls
+		#print (self.file_chosen_ls)
+		# print (self.datetime_ls)
 
 	def update_cb_data_ls(self):
 		# Take cb_data input and insert into cb_data_ls
@@ -414,7 +429,8 @@ class MainApplication(Tk.Tk):
 				self.cb_data_ls.append((cb, 1))
 			else:
 				self.cb_data_ls.append((cb, 0))
-		print self.cb_data_ls
+		# print (self.cb_ls)
+		# print (self.cb_data_ls)
 
 	def insert_row_data(self, ls, n):
 		# get data from data_ls and insert into SQL table
@@ -481,6 +497,21 @@ class MainApplication(Tk.Tk):
 	def _on_mousewheel(self, event):
 		self.canvas.yview_scroll(-1*(event.delta/120), "units")
 
+	def export_csv(self):
+		current_time = str(datetime.now().strftime('%Y_%m_%d_%H_%M_%S'))  # get current time for stamping
+		# reading the database generated by the labelling software
+		db = sqlite3.connect(self.db_link)
+		cursor = db.cursor()
+		data = cursor.execute("SELECT * FROM attributes")  # select the values under attributes
+		rows = cursor.fetchall()
+
+		# save the database as a csv file for further application
+		with open('../output/output_{0}.csv'.format(current_time), 'w') as csv_file:
+			writer = csv.writer(csv_file, delimiter = ' ')
+			writer.writerow(['id','file','date','person','home','playground','void_deck','park','public_space','supermarket','market','food_court','shop','mall','hospital','clinic','community_center','senior','religious','transaction_ser','fitness','bus_stop','mrt','walkway','pedestrian_crossing','cycling_path','street_lights','traffic_lights','street_signs','trees','furniture','stairs','ramps','walk','cycle','bus','train','car','drive','sit','chat','eat','shopping','run','exercise','not_useful'])
+			writer.writerows(rows)
+		print ("Export to 'output_" + str(current_time) + ".csv' file successfully.")
+		self.var_msg.set("Export to 'output_" + str(current_time) + ".csv' file successfully.")
 
 root = MainApplication()
 root.mainloop()
