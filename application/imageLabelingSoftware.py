@@ -20,13 +20,13 @@ class MainApplication(Tk.Tk):
 
 		# Checkbutton width for different Operating System
 		if platform.system() == 'Linux':
-			self.cb_width = 200 # Checkbutton width
+			self.cb_width = 180 # Checkbutton width
 		elif platform.system() == 'Darwin': # OSX
-			self.cb_width = 200
+			self.cb_width = 300
 		elif platform.system() == 'Windows':
 			self.cb_width = 300
 		else:
-			self.cb_width = 200
+			self.cb_width = 300
 
 		self.cb_ls = []  # checkbox list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
 		self.cb_data_ls = []  # checkbox data list: [(<Tkinter.Checkbutton instance>,1),......]
@@ -79,7 +79,9 @@ class MainApplication(Tk.Tk):
 		                 "Not Useful": "not_useful"}
 
 		self.title("Photo Labelling Software")
-		self.attributes('-fullscreen', True)
+		# self.attributes('-fullscreen', True)
+		self.w, self.h = self.winfo_screenwidth(), self.winfo_screenheight()
+		self.geometry("%dx%d+0+0" % (self.w, self.h))
 		self.grid_rowconfigure(1, weight = 1)
 		self.grid_columnconfigure(1, weight = 1)
 		
@@ -91,7 +93,7 @@ class MainApplication(Tk.Tk):
 		self.image_frame.grid(row = 1, column = 0, columnspan=3, sticky="NSEW")
 		# right_frame
 		self.right_frame = Tk.Frame(self.master)
-		self.right_frame.grid(row = 0, column = 3, rowspan=2, sticky="NSEW")
+		self.right_frame.grid(row = 0, column = 2, rowspan=3, sticky="NSEW")
 
 		self.canvas = Tk.Canvas(self.image_frame, width=900, height=900)
 		self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
@@ -116,8 +118,7 @@ class MainApplication(Tk.Tk):
 		self.b3 = Tk.Button(self.top_frame, text = "Show Labels", bg = "light gray", command = self.show_lbl).grid(row = 0, column = 4, padx=2)
 		self.b4 = Tk.Button(self.top_frame, text = "Clear Checks", bg = "light gray", command = self.clear_check).grid(row = 0,column = 5, padx=2)
 		self.b5 = Tk.Button(self.top_frame, text = "Clear Attribute", bg = "light gray", command = self.clear_atribute).grid(row = 0, column = 6, padx=2)
-		self.b6 = Tk.Button(self.top_frame, text = "Export CSV File", bg = "SpringGreen2", command = self.export_csv).grid(row = 0, column = 7, padx=2)
-		self.b7 = Tk.Button(self.top_frame, text="Quit", bg = "Red", command=self.destroy).grid(row = 0, column = 8, padx=100)
+		self.b6 = Tk.Button(self.top_frame, text = "Export CSV", bg = "SpringGreen2", command = self.export_csv).grid(row = 0, column = 7, padx=2)
 
 		self.var_msg = Tk.StringVar()
 		self.msg_lbl = Tk.Label(self.top_frame, textvariable=self.var_msg, font=("Helvetica", 12)).grid(row = 1, column = 0, columnspan = 10)
@@ -139,7 +140,7 @@ class MainApplication(Tk.Tk):
 		others_tab = ttk.Frame(self.tag_labels)
 
 		self.tag_labels.add(general_tab, text = "General")
-		self.tag_labels.add(location_tab, text = "Location/Built Environment Features")
+		self.tag_labels.add(location_tab, text = "Location")
 		self.tag_labels.add(activity_tab, text = "Activity")
 		self.tag_labels.add(others_tab, text = "Others")
 
@@ -291,56 +292,60 @@ class MainApplication(Tk.Tk):
 		path_ = tkFileDialog.askdirectory()
 		self.var_msg.set("Importing images... This may take awhile =) ")
 		self.path.set(path_)
-		self.file_ls = []  # image list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
-		self.file_chosen_ls = []  # image data list: [<Tkinter.Checkbutton instance>,......]
-		self.datetime_ls = []
-		self.image = []
-		self.photo = []
-
-		self.frame_in2.destroy()
-		self.frame_in2 = Tk.Frame(self.canvas)
-		# self.canvas.create_window((0, 0), window = self.frame_in2, anchor="center", height="25c", width="15c")
-		# self.frame_in2.grid()
-		self.canvas.create_window((0, 0), window = self.frame_in2, anchor = 'nw') 
-		self.frame_in2.bind("<Configure>", self.my_canvas) 
-		
-		self.image_frame.update()
-		width = self.image_frame.winfo_width()
-
-		col = 0
-		row = 0
-		
-		if width < 1300:
-			no_row = 3
+		print("folder path: %s"%self.path.get())
+		# handle error when user click 'cancle' button on the import image window
+		if self.path.get() == '':
+			self.var_msg.set("Please select an image folder.")
+			print("Please select an image folder.")
 		else:
-			no_row = 4
-		
+			self.file_ls = []  # image list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
+			self.file_chosen_ls = []  # image data list: [<Tkinter.Checkbutton instance>,......]
+			self.datetime_ls = []
+			self.image = []
+			self.photo = []
+			# delete photos on GUI
+			self.frame_in2.destroy()
+			self.frame_in2 = Tk.Frame(self.canvas)
+			# self.canvas.create_window((0, 0), window = self.frame_in2, anchor="center", height="25c", width="15c")
+			# self.frame_in2.grid()
+			self.canvas.create_window((0, 0), window = self.frame_in2, anchor = 'nw') 
+			self.frame_in2.bind("<Configure>", self.my_canvas) 
+			
+			# Handle No. of rows of photos based on image frame width
+			no_row = self.get_row()
 
-		for file_name in os.listdir(self.path.get()):
-			global image, photo
-			if file_name.endswith(".jpg") or file_name.endswith(".jpeg"):
-				self.image.insert(0, Image.open(os.path.join(self.path.get(), file_name)).resize((260, 145)))
-				self.photo.insert(0, ImageTk.PhotoImage(self.image[0]))
-				var = Tk.IntVar()
-				c1 = Tk.Checkbutton(self.frame_in2, text = file_name, image = self.photo[0], variable = var, onvalue = 1, offvalue = 0, width = self.cb_width)
-				c1.grid(row = row, column = col)
-				# c1.pack()
-				col += 1
-				if col >= no_row:
-					row += 1
-					col = 0
-				self.file_ls.append((c1, var))
-		self.var_msg.set("Imported " + str(len(self.file_ls)) + " images successfully")
+			col = 0
+			row = 0
 
-		with sqlite3.connect(self.db_link) as db:
-			cur = db.cursor()
-			for x in self.file_ls:
-				f = x[0]
-				name = f.cget("text")
-				cur.execute("SELECT id FROM attributes WHERE file = (?)", (name,))
-				row = cur.fetchall()
-				if len(row) != 0:
-					f.configure(bg = "tomato")
+			for file_name in os.listdir(self.path.get()):
+				global image, photo
+				if file_name.endswith(".jpg") or file_name.endswith(".jpeg"):
+					self.image.insert(0, Image.open(os.path.join(self.path.get(), file_name)).resize((260, 160)))
+					self.photo.insert(0, ImageTk.PhotoImage(self.image[0]))
+					var = Tk.IntVar()
+					c1 = Tk.Checkbutton(self.frame_in2, text = file_name, image = self.photo[0], variable = var, onvalue = 1, offvalue = 0, width = self.cb_width)
+					c1.grid(row = row, column = col)
+					# c1.pack()
+					col += 1
+					if col >= no_row:
+						row += 1
+						col = 0
+					self.file_ls.append((c1, var))
+
+			# handle no image folder
+			if len(self.file_ls) == 0:
+				self.var_msg.set("No jpg or jpeg file in %s."%self.path.get())
+			else:
+				self.var_msg.set("Imported " + str(len(self.file_ls)) + " images successfully from " + str(self.path.get()) + ".")
+				with sqlite3.connect(self.db_link) as db:
+					cur = db.cursor()
+					for x in self.file_ls:
+						f = x[0]
+						name = f.cget("text")
+						cur.execute("SELECT id FROM attributes WHERE file = (?)", (name,))
+						row = cur.fetchall()
+						if len(row) != 0:
+							f.configure(bg = "tomato")
 
 	def update(self):
 		self.update_file_chosen_ls()
@@ -452,6 +457,7 @@ class MainApplication(Tk.Tk):
 		return query_result
 
 	def show_lbl(self):
+		# show label on GUI based on database
 		self.update_file_chosen_ls()
 		if len(self.file_chosen_ls) == 0:
 			self.var_msg.set("No image is checked")
@@ -493,6 +499,17 @@ class MainApplication(Tk.Tk):
 		for y in self.file_ls:
 			var = y[1]
 			var.set(0)
+		
+	def get_row(self):
+		# return No. of rows based on image frame width
+		self.image_frame.update()
+		width = self.image_frame.winfo_width()
+		if width < 1300:
+			no_row = 3
+		else:
+			no_row = 4
+
+		return no_row
 
 	def _on_mousewheel(self, event):
 		self.canvas.yview_scroll(-1*(event.delta/120), "units")
@@ -507,11 +524,11 @@ class MainApplication(Tk.Tk):
 
 		# save the database as a csv file for further application
 		with open('../output/output_{0}.csv'.format(current_time), 'w') as csv_file:
-			writer = csv.writer(csv_file, delimiter = ' ')
+			writer = csv.writer(csv_file, delimiter = ',')
 			writer.writerow(['id','file','date','person','home','playground','void_deck','park','public_space','supermarket','market','food_court','shop','mall','hospital','clinic','community_center','senior','religious','transaction_ser','fitness','bus_stop','mrt','walkway','pedestrian_crossing','cycling_path','street_lights','traffic_lights','street_signs','trees','furniture','stairs','ramps','walk','cycle','bus','train','car','drive','sit','chat','eat','shopping','run','exercise','not_useful'])
 			writer.writerows(rows)
-		print ("Export to 'output_" + str(current_time) + ".csv' file successfully.")
-		self.var_msg.set("Export to 'output_" + str(current_time) + ".csv' file successfully.")
+		print ("Export to '/output/output_" + str(current_time) + ".csv' file successfully.")
+		self.var_msg.set("Export to '/output/output_" + str(current_time) + ".csv' file successfully.")
 
 root = MainApplication()
 root.mainloop()
