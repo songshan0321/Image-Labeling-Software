@@ -20,13 +20,13 @@ class MainApplication(Tk.Tk):
 
 		# Checkbutton width for different Operating System
 		if platform.system() == 'Linux':
-			self.cb_width = 180 # Checkbutton width
+			self.cb_width = 120 # Checkbutton width
 		elif platform.system() == 'Darwin': # OSX
-			self.cb_width = 300
+			self.cb_width = 350
 		elif platform.system() == 'Windows':
 			self.cb_width = 300
 		else:
-			self.cb_width = 300
+			self.cb_width = 300 # Default checkbutton width
 
 		self.cb_ls = []  # checkbox list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
 		self.cb_data_ls = []  # checkbox data list: [(<Tkinter.Checkbutton instance>,1),......]
@@ -82,22 +82,22 @@ class MainApplication(Tk.Tk):
 		# self.attributes('-fullscreen', True)
 		self.w, self.h = self.winfo_screenwidth(), self.winfo_screenheight()
 		self.geometry("%dx%d+0+0" % (self.w, self.h))
-		self.grid_rowconfigure(1, weight = 1)
-		self.grid_columnconfigure(1, weight = 1)
+		self.grid_rowconfigure(2, weight = 1)
+		self.grid_columnconfigure(0, weight = 1)
 		
 		# top_frame
 		self.top_frame = Tk.Frame(self.master)
-		self.top_frame.grid(row = 0, column = 0, columnspan=3, sticky="EW")
+		self.top_frame.grid(row = 0, column = 0, columnspan=3, sticky="NW")
 		# image frame
 		self.image_frame = Tk.Frame(self.master)
-		self.image_frame.grid(row = 1, column = 0, columnspan=3, sticky="NSEW")
+		self.image_frame.grid(row = 1, column = 0, columnspan=3, rowspan=5, sticky="NSEW")
 		# right_frame
 		self.right_frame = Tk.Frame(self.master)
-		self.right_frame.grid(row = 0, column = 2, rowspan=3, sticky="NSEW")
+		self.right_frame.grid(row = 0, column = 3, rowspan=5, sticky="NSEW")
 
-		self.canvas = Tk.Canvas(self.image_frame, width=900, height=900)
+		self.canvas = Tk.Canvas(self.image_frame)
 		self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
-		self.frame_in2 = Tk.Frame(self.canvas,width=1000)
+		self.frame_in2 = Tk.Frame(self.canvas,width=self.image_frame.winfo_width(),height=self.image_frame.winfo_height())
 		self.my_scrollbar = Tk.Scrollbar(self.image_frame, orient = "vertical", command = self.canvas.yview)
 		self.canvas.configure(yscrollcommand = self.my_scrollbar.set)
 		self.my_scrollbar.pack(side = "right", fill = "y")
@@ -286,7 +286,7 @@ class MainApplication(Tk.Tk):
 			cb[0].grid(sticky = "w")
 
 	def my_canvas(self, event):
-		self.canvas.configure(scrollregion = self.canvas.bbox("all"), width = 1500, height = 1000)
+		self.canvas.configure(scrollregion = self.canvas.bbox("all"), width = self.frame_in2.winfo_width(), height=self.frame_in2.winfo_height())
 
 	def open_photo(self):
 		path_ = tkFileDialog.askdirectory()
@@ -320,7 +320,7 @@ class MainApplication(Tk.Tk):
 			for file_name in os.listdir(self.path.get()):
 				global image, photo
 				if file_name.endswith(".jpg") or file_name.endswith(".jpeg"):
-					self.image.insert(0, Image.open(os.path.join(self.path.get(), file_name)).resize((260, 160)))
+					self.image.insert(0, Image.open(os.path.join(self.path.get(), file_name)).resize((260, 195)))
 					self.photo.insert(0, ImageTk.PhotoImage(self.image[0]))
 					var = Tk.IntVar()
 					c1 = Tk.Checkbutton(self.frame_in2, text = file_name, image = self.photo[0], variable = var, onvalue = 1, offvalue = 0, width = self.cb_width)
@@ -504,7 +504,7 @@ class MainApplication(Tk.Tk):
 		# return No. of rows based on image frame width
 		self.image_frame.update()
 		width = self.image_frame.winfo_width()
-		if width < 1300:
+		if width < 1350:
 			no_row = 3
 		else:
 			no_row = 4
