@@ -18,7 +18,7 @@ Manual Image Labeling Software for a social science research project at Lee Kuan
 
   <img src="doc/pic/open_software.jpeg" width="500px" />
 
-  3. Run program (Press F5). Now you will be able to see the software GUI.
+  Run program (Press F5). Now you will be able to see the software GUI.
 
   <img src="doc/pic/run_program.jpeg" width="500px" />
 
