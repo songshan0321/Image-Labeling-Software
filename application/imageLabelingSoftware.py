@@ -1,5 +1,5 @@
 # coding=utf-8
-import os
+import os, sys
 import tkFileDialog
 import Tkinter as Tk
 import ttk
@@ -16,15 +16,70 @@ class MainApplication(Tk.Tk):
 	def __init__(self):
 		Tk.Tk.__init__(self)
 		self.path = Tk.StringVar()
-		self.db_link = "../database/lkydata.db"
+		self.db_link = ""
+
+		self.sql_create_table = """ CREATE TABLE IF NOT EXISTs attributes (
+									id                  INTEGER  PRIMARY KEY
+																NOT NULL
+																UNIQUE,
+									file                STRING   NOT NULL
+																UNIQUE,
+									date                DATETIME,
+									person              BOOLEAN  DEFAULT (0),
+									home                BOOLEAN  DEFAULT (0),
+									playground          BOOLEAN  DEFAULT (0),
+									void_deck           BOOLEAN  DEFAULT (0),
+									park                BOOLEAN  DEFAULT (0),
+									public_space        BOOLEAN  DEFAULT (0),
+									supermarket         BOOLEAN  DEFAULT (0),
+									market              BOOLEAN  DEFAULT (0),
+									food_court          BOOLEAN  DEFAULT (0),
+									shop                BOOLEAN  DEFAULT (0),
+									mall                BOOLEAN  DEFAULT (0),
+									hospital            BOOLEAN  DEFAULT (0),
+									clinic              BOOLEAN  DEFAULT (0),
+									community_center    BOOLEAN  DEFAULT (0),
+									senior              BOOLEAN  DEFAULT (0),
+									religious           BOOLEAN  DEFAULT (0),
+									transaction_ser     BOOLEAN  DEFAULT (0),
+									fitness             BOOLEAN  DEFAULT (0),
+									bus_stop            BOOLEAN  DEFAULT (0),
+									mrt                 BOOLEAN  DEFAULT (0),
+									walkway             BOOLEAN  DEFAULT (0),
+									pedestrian_crossing BOOLEAN  DEFAULT (0),
+									cycling_path        BOOLEAN  DEFAULT (0),
+									street_lights       BOOLEAN  DEFAULT (0),
+									traffic_lights      BOOLEAN  DEFAULT (0),
+									street_signs        BOOLEAN  DEFAULT (0),
+									trees               BOOLEAN  DEFAULT (0),
+									furniture           BOOLEAN  DEFAULT (0),
+									stairs              BOOLEAN  DEFAULT (0),
+									ramps               BOOLEAN  DEFAULT (0),
+									walk                BOOLEAN  DEFAULT (0),
+									cycle               BOOLEAN  DEFAULT (0),
+									bus                 BOOLEAN  DEFAULT (0),
+									train               BOOLEAN  DEFAULT (0),
+									car                 BOOLEAN  DEFAULT (0),
+									drive               BOOLEAN  DEFAULT (0),
+									sit                 BOOLEAN  DEFAULT (0),
+									chat                BOOLEAN  DEFAULT (0),
+									eat                 BOOLEAN  DEFAULT (0),
+									shopping            BOOLEAN  DEFAULT (0),
+									run                 BOOLEAN  DEFAULT (0),
+									exercise            BOOLEAN  DEFAULT (0),
+									not_useful          BOOLEAN  DEFAULT (0) 
+								); """
 
 		# Checkbutton width for different Operating System
 		if platform.system() == 'Linux':
 			self.cb_width = 120 # Checkbutton width
+			self.image_width = 260
 		elif platform.system() == 'Darwin': # OSX
-			self.cb_width = 350
+			self.cb_width = 280
+			self.image_width = 245
 		elif platform.system() == 'Windows':
 			self.cb_width = 300
+			self.image_width = 260
 		else:
 			self.cb_width = 300 # Default checkbutton width
 
@@ -289,14 +344,16 @@ class MainApplication(Tk.Tk):
 		self.canvas.configure(scrollregion = self.canvas.bbox("all"), width = self.frame_in2.winfo_width(), height=self.frame_in2.winfo_height())
 
 	def open_photo(self):
+		self.backup_path = self.path.get()
 		path_ = tkFileDialog.askdirectory()
 		self.var_msg.set("Importing images... This may take awhile =) ")
 		self.path.set(path_)
 		print("folder path: %s"%self.path.get())
-		# handle error when user click 'cancle' button on the import image window
+		# handle error when user click 'cancel' button on the import image window
 		if self.path.get() == '':
 			self.var_msg.set("Please select an image folder.")
 			print("Please select an image folder.")
+			self.path.set(self.backup_path)
 		else:
 			self.file_ls = []  # image list: [(<Tkinter.Checkbutton instance>,<Tkinter.IntVar instance>),......]
 			self.file_chosen_ls = []  # image data list: [<Tkinter.Checkbutton instance>,......]
@@ -320,7 +377,7 @@ class MainApplication(Tk.Tk):
 			for file_name in os.listdir(self.path.get()):
 				global image, photo
 				if file_name.endswith(".jpg") or file_name.endswith(".jpeg"):
-					self.image.insert(0, Image.open(os.path.join(self.path.get(), file_name)).resize((260, 195)))
+					self.image.insert(0, Image.open(os.path.join(self.path.get(), file_name)).resize((self.image_width, int(self.image_width*0.75))))
 					self.photo.insert(0, ImageTk.PhotoImage(self.image[0]))
 					var = Tk.IntVar()
 					c1 = Tk.Checkbutton(self.frame_in2, text = file_name, image = self.photo[0], variable = var, onvalue = 1, offvalue = 0, width = self.cb_width)
@@ -337,13 +394,29 @@ class MainApplication(Tk.Tk):
 				self.var_msg.set("No jpg or jpeg file in %s."%self.path.get())
 			else:
 				self.var_msg.set("Imported " + str(len(self.file_ls)) + " images successfully from " + str(self.path.get()) + ".")
+				self.db_name = self.getDbName(self.path.get())
+				# Create directory if it is not exist
+				if os.path.isdir("../database/data_" + self.db_name) == False:
+					os.mkdir("../database/data_" + self.db_name, 0755)
+					print "Path is created"
+
+				self.db_link = "../database/data_" + self.db_name + "/" + self.db_name + '.db'
 				with sqlite3.connect(self.db_link) as db:
 					cur = db.cursor()
+					# Create table if it is a new database
+					if db is not None:
+						self.create_table(db, self.sql_create_table) # only execute this line when db is a new database
+						print ("Created a new database: %s" %self.db_name + '.db')
+						self.var_msg.set("Created a new database: %s" %self.db_name + '.db')
+					else:
+						print("Error! cannot create the database connection.")
+					
 					for x in self.file_ls:
 						f = x[0]
 						name = f.cget("text")
 						cur.execute("SELECT id FROM attributes WHERE file = (?)", (name,))
 						row = cur.fetchall()
+						# If picture is already recorded in database
 						if len(row) != 0:
 							f.configure(bg = "tomato")
 
@@ -515,7 +588,6 @@ class MainApplication(Tk.Tk):
 		self.canvas.yview_scroll(-1*(event.delta/120), "units")
 
 	def export_csv(self):
-		current_time = str(datetime.now().strftime('%Y_%m_%d_%H_%M_%S'))  # get current time for stamping
 		# reading the database generated by the labelling software
 		db = sqlite3.connect(self.db_link)
 		cursor = db.cursor()
@@ -523,12 +595,32 @@ class MainApplication(Tk.Tk):
 		rows = cursor.fetchall()
 
 		# save the database as a csv file for further application
-		with open('../output/output_{0}.csv'.format(current_time), 'w') as csv_file:
-			writer = csv.writer(csv_file, delimiter = ',')
+		# Create directory if it is not exist
+		if os.path.isdir("../database/data_" + self.db_name) == False:
+			print("No directory called '../database/data_{0}' was found".format(self.db_name))
+			self.var_msg.set("No directory called '../database/data_{0}' was found, cannot export csv.".format(self.db_name))
+		with open('../database/data_{0}/{0}.csv'.format(self.db_name), 'w') as csv_file:
+			writer = csv.writer(csv_file, delimiter = ' ')
 			writer.writerow(['id','file','date','person','home','playground','void_deck','park','public_space','supermarket','market','food_court','shop','mall','hospital','clinic','community_center','senior','religious','transaction_ser','fitness','bus_stop','mrt','walkway','pedestrian_crossing','cycling_path','street_lights','traffic_lights','street_signs','trees','furniture','stairs','ramps','walk','cycle','bus','train','car','drive','sit','chat','eat','shopping','run','exercise','not_useful'])
 			writer.writerows(rows)
-		print ("Export to '/output/output_" + str(current_time) + ".csv' file successfully.")
-		self.var_msg.set("Export to '/output/output_" + str(current_time) + ".csv' file successfully.")
+		print ("Export to '../database/data_"+ self.db_name + "/" + self.db_name + ".csv' file successfully.")
+		self.var_msg.set("Export to '../database/data_"+ self.db_name + "/" + self.db_name + ".csv' file successfully.")
+
+	def create_table(self, db, create_table_sql):
+		""" create a table from the create_table_sql statement
+		:param conn: Connection object
+		:param create_table_sql: a CREATE TABLE statement
+		:return:
+		"""
+		try:
+			cur = db.cursor()
+			cur.execute(create_table_sql)
+		except Error as e:
+			print(e)
+
+	def getDbName(self, path):
+		index = path.rfind('/')
+		return path[index+1:]
 
 root = MainApplication()
 root.mainloop()

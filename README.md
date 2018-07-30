@@ -8,7 +8,7 @@ Manual Image Labeling Software for a social science research project at Lee Kuan
 
 1. Download zip file from https://github.com/songshan0321/Image-Labeling-Software.git and unzip it.
 
-  **Attention:** Please do not edit any file's directory and code in this folder. Make sure lkydata.db is inside database folder.
+  **Attention:** Please do not edit any file's directory and code in this folder.
 
   *If python2.7 is not installed in your computer, Download and install Python2.7.14 from https://www.python.org/downloads/ .*
 
@@ -22,14 +22,14 @@ Manual Image Labeling Software for a social science research project at Lee Kuan
 
   <img src="doc/pic/run_program.jpeg" width="500px" />
 
-  *For windows user, if you get this error, “ImportError: DLL load failed: The specified procedure could not be found.” , can run “Pillow-4.0.0.win32-py2.7.exe” in this repo.*
+  *For windows user, if you get this error, “ImportError: DLL load failed: The specified procedure could not be found.” , can run “Pillow-4.0.0.win32-py2.7.exe” in [doc folder](doc).*
 
-4. After finish labeling work, click 'Export CSV' button, 'output_xxx.csv' file will be generated in ['output' folder](output).
+4. After finish labeling work, click 'Export CSV' button, 'Day xxxxxx.csv' file will be generated in ['database' folder](database).
 
-  *P/S: Multiple CSV files will be created if you pressed button multiple times*
+  *P/S: One CSV file can only be created for each image folder. New csv will be created for new image folder.*
 
   
 
-  *If you want visualize database, can proceed to Step 5 .*
+  *If you want visualize database, can proceed to Step 5, it is optional .*
 
 5. (Optional) Download and install SQLitestudio. https://sqlitestudio.pl/index.rvt?act=download. Then, open SQLitestudio click Databse > Add a database, press the ‘+’ button to add [‘lkydat.db’](database/lkydata.db) and connect it to the database. At the left column, click Tables > attributes. You will be able to see the data here. Press F5 to refresh once you update the database.
