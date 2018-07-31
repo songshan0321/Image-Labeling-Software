@@ -22,6 +22,7 @@ class MainApplication(Tk.Tk):
 									id                  INTEGER  PRIMARY KEY
 																NOT NULL
 																UNIQUE,
+									participant_id      STRING,
 									file                STRING   NOT NULL
 																UNIQUE,
 									date                DATETIME,
@@ -430,8 +431,8 @@ class MainApplication(Tk.Tk):
 		else:
 			# update data to database
 			try:  # if file not exist in database, add new row
-				self.run_query("INSERT INTO attributes(file,date) VALUES (?,?)",
-							(self.file_chosen_ls[0].cget("text"), self.datetime_ls[0]))
+				self.run_query("INSERT INTO attributes(participant_id,file,date) VALUES (?,?,?)",
+							("", self.file_chosen_ls[0].cget("text"), self.datetime_ls[0]))
 			except:  # if file exist in database, update it to all 0 first
 				self.run_query(
 					"UPDATE attributes SET person=0,home=0,playground=0,void_deck=0,park=0,public_space=0,supermarket=0,market=0,food_court=0,shop=0,mall=0,hospital=0,clinic=0,community_center=0,senior=0,religious=0,transaction_ser=0,fitness=0,bus_stop=0,mrt=0,walkway=0,pedestrian_crossing=0,cycling_path=0,street_lights=0,traffic_lights=0,street_signs=0,trees=0,furniture=0,stairs=0,ramps=0,walk=0,cycle=0,bus=0,train=0,car=0,drive=0,sit=0,chat=0,eat=0,shop=0,run=0,exercise=0,not_useful=0 WHERE file = (?)",
@@ -443,8 +444,8 @@ class MainApplication(Tk.Tk):
 			if len(self.file_chosen_ls) >= 2:
 				for j in range(1, len(self.file_chosen_ls)):
 					try:  # if file not exist in database, add new row
-						self.run_query("INSERT INTO attributes(file,date) VALUES (?,?)",
-									(self.file_chosen_ls[j].cget("text"), self.datetime_ls[j]))
+						self.run_query("INSERT INTO attributes(participant_id,file,date) VALUES (?,?,?)",
+									("", self.file_chosen_ls[j].cget("text"), self.datetime_ls[j]))
 					except:  # if file exist in database, update it to all 0 first
 						self.run_query(
 							"UPDATE attributes SET person=0,home=0,playground=0,void_deck=0,park=0,public_space=0,supermarket=0,market=0,food_court=0,shop=0,mall=0,hospital=0,clinic=0,community_center=0,senior=0,religious=0,transaction_ser=0,fitness=0,bus_stop=0,mrt=0,walkway=0,pedestrian_crossing=0,cycling_path=0,street_lights=0,traffic_lights=0,street_signs=0,trees=0,furniture=0,stairs=0,ramps=0,walk=0,cycle=0,bus=0,train=0,car=0,drive=0,sit=0,chat=0,eat=0,shop=0,run=0,exercise=0,not_useful=0 WHERE file = (?)",
@@ -600,8 +601,8 @@ class MainApplication(Tk.Tk):
 			print("No directory called '../database/data_{0}' was found".format(self.db_name))
 			self.var_msg.set("No directory called '../database/data_{0}' was found, cannot export csv.".format(self.db_name))
 		with open('../database/data_{0}/{0}.csv'.format(self.db_name), 'w') as csv_file:
-			writer = csv.writer(csv_file, delimiter = ' ')
-			writer.writerow(['id','file','date','person','home','playground','void_deck','park','public_space','supermarket','market','food_court','shop','mall','hospital','clinic','community_center','senior','religious','transaction_ser','fitness','bus_stop','mrt','walkway','pedestrian_crossing','cycling_path','street_lights','traffic_lights','street_signs','trees','furniture','stairs','ramps','walk','cycle','bus','train','car','drive','sit','chat','eat','shopping','run','exercise','not_useful'])
+			writer = csv.writer(csv_file, delimiter = ',')
+			writer.writerow(['id','participant_id','file','date','person','home','playground','void_deck','park','public_space','supermarket','market','food_court','shop','mall','hospital','clinic','community_center','senior','religious','transaction_ser','fitness','bus_stop','mrt','walkway','pedestrian_crossing','cycling_path','street_lights','traffic_lights','street_signs','trees','furniture','stairs','ramps','walk','cycle','bus','train','car','drive','sit','chat','eat','shopping','run','exercise','not_useful'])
 			writer.writerows(rows)
 		print ("Export to '../database/data_"+ self.db_name + "/" + self.db_name + ".csv' file successfully.")
 		self.var_msg.set("Export to '../database/data_"+ self.db_name + "/" + self.db_name + ".csv' file successfully.")
